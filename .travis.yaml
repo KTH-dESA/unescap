@@ -1,0 +1,17 @@
+language: python
+python:
+  - "3.6"      # current default Python on Travis CI
+  - "3.7"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+before_deploy: "echo 'ready?'"
+deploy:
+  on:
+    tags: True
+  provider: heroku
+  api_key:
+    secure: "YOUR ENCRYPTED API KEY"
+after_deploy:
+  - ./after_deploy_1.sh
+  - ./after_deploy_2.sh
