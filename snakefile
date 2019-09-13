@@ -20,7 +20,7 @@ rule solve:
 
 rule clean:
 	shell:
-		"rm -f processed_data/*/*.pdf processed_data/*/*.sol processed_data/*/*.csv *.png"
+		"rm -fr processed_data/* results/* *.png"
 
 rule make_dag:
 	output: pipe("dag.txt")
