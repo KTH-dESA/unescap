@@ -10,7 +10,9 @@ import os.path
 import copy
 
 scenarios = ['BAU', 'Current Policies', 'SDG7']
-folder = 'Data'
+
+my_path = os.path.abspath(os.path.dirname(__file__))
+folder = os.path.join(my_path, 'Data')
 input_tfec = pd.read_excel(os.path.join(folder, 'TFEC.xlsx'))
 input_production = pd.read_excel(os.path.join(folder, 'Electricity_generation.xlsx'))
 input_tfec_re = pd.read_excel(os.path.join(folder, 'TFEC_renewables.xlsx'))
