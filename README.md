@@ -1,5 +1,7 @@
 # UNESCAP
 
+[![Build Status](https://travis-ci.com/KTH-dESA/unescap.svg?branch=master)](https://travis-ci.com/KTH-dESA/unescap)
+
 ## OSeMOSYS Workflow
 
 ### Installation
