@@ -16,3 +16,5 @@ deploy:
     secure: "YOUR ENCRYPTED API KEY"
 after_deploy:
   - "echo 'after deployment'"
+notifications:
+  email: false
