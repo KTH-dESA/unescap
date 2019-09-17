@@ -381,14 +381,14 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     [
-                        html.P('SDG7.1 - Access to electricity', style={'text-align': 'center', 'font-size': '12px'}),
+                        html.P('SDG7.1.1 - Access to electricity', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='el-access-switch', on=False)
                     ],
                     className="mini_container",
                 ),
                 html.Div(
                     [
-                        html.P('SDG7.1 - Access to clean cooking fuel', style={'text-align': 'center', 'font-size': '12px'}),
+                        html.P('SDG7.1.2 - Access to clean cooking fuel', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='clean-cooking-switch', on=False)
                     ],
                     className="mini_container",
@@ -561,7 +561,7 @@ app.layout = html.Div(
             [
                 html.Div(
                     [
-                        html.H6('SDG7.3 - Access to electricity'),
+                        html.H6('SDG7.1.1 - Access to electricity'),
                         dcc.Graph(
                             id='el_access_graph',
                         ),
@@ -584,7 +584,7 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     [
-                        html.H6('SDG7.1 - Access to clean cooking fuel'),
+                        html.H6('SDG7.1.2 - Access to clean cooking fuel'),
                         dcc.Graph(
                             id='cooking_graph',
                         ),

@@ -26,7 +26,11 @@ A companion dashboard to visualize the results from the OSeMOSYS model is provid
 ### Installation instructions:
 
 1.	You should have installed a distribution of python 3.x in your computer. 
-2.	If you are using the Anaconda distribution of Python, install all python packages required listed in the `requirements.txt` file using the `conda install -c conda-forge --file requirements.txt` command in your computer bash or anaconda prompt. Alternatively, you can create a virtual environment using venv and install all required packages there using pip:
+2.	If you are using the Anaconda distribution of Python, install all python packages required listed in the `requirements.txt` 
+file using the `conda install -c conda-forge --file requirements.txt` command in your computer bash or anaconda prompt. 
+You can also create an environment with `conda create -n <name-of-environment> -c conda-forge --file requirements.txt`, 
+and activate it with `conda activate <name-of-environment>`.
+ Alternatively, you can create a virtual environment using venv and install all required packages there using pip:
 ```
 cd <path-to-the-dashboard-folder>
 pip install virtualenv
@@ -35,6 +39,6 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 ``` 
 ### Running the dashboard:
-After installing all required packages, the dashboard can be run locally by running `python app.py` in your bash or anaconda prompt. A local host URL will be displayed as: http://127.0.0.1:8050/ copy it and paste it in your browser.
+After installing all required packages, the dashboard can be run locally by running `dashboard/python app.py` in your bash or anaconda prompt. A local host URL will be displayed as: http://127.0.0.1:8050/ copy it and paste it in your browser.
 
 To exit the app, type CTRL + C a couple of times in your bash.
