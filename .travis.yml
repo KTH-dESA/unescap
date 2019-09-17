@@ -5,6 +5,8 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
+script:
+  - "echo 'running pretend tests'"
 before_deploy: "echo 'ready?'"
 deploy:
   on:
@@ -13,5 +15,6 @@ deploy:
   api_key:
     secure: "YOUR ENCRYPTED API KEY"
 after_deploy:
-  - ./after_deploy_1.sh
-  - ./after_deploy_2.sh
+  - "echo 'after deployment'"
+notifications:
+  email: false
