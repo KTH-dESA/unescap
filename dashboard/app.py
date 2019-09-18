@@ -188,6 +188,8 @@ layout = dict(
 
 hover_template = '<br><b>Value</b>: %{y:.2f}' + '<br><b>Year</b>: %{x}'
 
+units_dict = {'PJ': 1, 'Mtoe': 0.0238845897, 'MMboe': 0.163456, 'TWh': 0.277777778, None: 1}
+
 ##### Helper functions #####
 def tfec_re_share(scenario, year_slider, layout_tfec):
     dff = df_tfec_re.loc[(df_tfec_re['Scenario'] == scenario) & ((df_tfec_re['y'] >= year_slider[0]) & (df_tfec_re['y'] <= year_slider[1]))]
@@ -211,10 +213,11 @@ def tfec_re_share(scenario, year_slider, layout_tfec):
 
     return data, layout_tfec
 
-def get_general_graph(df, year_slider, variable, layout, title):
+def get_general_graph(df, year_slider, variable, layout, title, units = None):
     dff = df.loc[(df['y'] >= year_slider[0]) & (df['y'] <= year_slider[1])]
     dff = dff.groupby(['y', 'Scenario']).agg({variable: 'sum'})
     dff = dff.reset_index()
+    dff[variable] *= units_dict[units]
 
     data = [
         dict(
@@ -295,6 +298,18 @@ app.layout = html.Div(
             [
                 html.Div(
                     [
+                        dbc.Button(
+                            "Settings",
+                            id="settings-button",
+                            # className="mb-3",
+                            # color="primary",
+                        ),
+                    ],
+                    className="container",
+                    style={'margin-bottom': '25px', 'margin-right': '25px'}
+                ),
+                html.Div(
+                    [
                         dbc.Button("Reference Energy System", id="open-res", style={'float': 'right'}),
                     ],
                     className="container",
@@ -360,6 +375,85 @@ app.layout = html.Div(
             ],
             className="row flex-display",
             style={'margin': 'auto', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0'}
+        ),
+
+        dbc.Collapse(
+            dbc.Card(
+                [
+                    dbc.CardHeader("Units settings"),
+                    dbc.CardBody(
+                        [
+                            html.Div(
+                                [
+                                    html.P(
+                                        [
+                                            'Select energy ',
+                                            html.Span(
+                                                "units", id="units-tooltip-target"
+                                            ),
+                                        ],
+                                        className="control_label",
+                                    ),
+                                    dbc.Tooltip(
+                                        [
+                                            html.P('PJ: Peta Joule', style={'font-size': '12px'}),
+                                            html.P('Mtoe: Mega tonne oil equivalent', style={'font-size': '12px'}),
+                                            html.P('MMboe: Million barrels of oil equivalent', style={'font-size': '12px'}),
+                                        ],
+                                        style={'text-align': 'left', 'max-width': '500px'},
+                                        target="units-tooltip-target",
+                                    ),
+                                    dcc.Dropdown(
+                                        id='energy_units',
+                                        options=[
+                                            {'label': 'PJ', 'value': 'PJ'},
+                                            {'label': 'Mtoe', 'value': 'Mtoe'},
+                                            {'label': 'MMboe', 'value': 'MMboe'},
+                                        ],
+                                        value='PJ',
+                                    ),
+                                    html.P(
+                                        [
+                                            'Select electricity ',
+                                            html.Span(
+                                                    "units", id="el-units-tooltip-target"
+                                            ),
+                                        ],
+                                        className="control_label",
+                                    ),
+                                    dbc.Tooltip(
+                                        [
+                                            html.P('PJ: Peta Joule', style={'font-size': '12px'}),
+                                            html.P('TWh: Terawatts hour', style={'font-size': '12px'}),
+                                        ],
+                                        style={'text-align': 'left', 'max-width': '500px'},
+                                        target="el-units-tooltip-target",
+                                    ),
+                                    dcc.Dropdown(
+                                        id='electricity_units',
+                                        options=[
+                                            {'label': 'PJ', 'value': 'PJ'},
+                                            {'label': 'TWh', 'value': 'TWh'},
+                                        ],
+                                        value='TWh',
+                                    ),
+                                ],
+                                className="container",
+                            ),
+                            # html.Div(
+                            #     [
+                            #         dcc.Graph(
+                            #             id='projection_graph',
+                            #         ),
+                            #     ]
+                            # )
+                        ],
+                        className="row flex-display",
+                    )
+                ]
+            ),
+            id="settings",
+            className="container"
         ),
 
         html.Div(
@@ -807,15 +901,17 @@ def set_state(value):
         Input('tfec_scenario', 'value'),
         Input('year_slider', 'value'),
         Input('tfec_type', 'value'),
+        Input('energy_units', 'value'),
     ],
 )
-def update_tfec(scenario, year_slider, filter):
+def update_tfec(scenario, year_slider, filter, units):
     layout_tfec = copy.deepcopy(layout)
     if filter == 'all':
-        data, layout_tfec = get_general_graph(df_tfec, year_slider, tfec_variable, layout, "Total Final Energy Consumption (PJ)")
+        data, layout_tfec = get_general_graph(df_tfec, year_slider, tfec_variable, layout, "Total Final Energy Consumption ({})".format(units), units)
     elif filter == 'sector':
         dff = df_tfec.loc[
             (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
+        dff[tfec_variable] *= units_dict[units]
 
         data = [
             dict(
@@ -829,10 +925,11 @@ def update_tfec(scenario, year_slider, filter):
         ]
 
         layout_tfec["barmode"] = 'stack'
-        layout_tfec["title"] = "Total Final Energy Consumption (PJ)"
+        layout_tfec["title"] = "Total Final Energy Consumption ({})".format(units)
     elif filter == 'fuel':
         dff = df_tfec.loc[
             (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
+        dff[tfec_variable] *= units_dict[units]
 
         data = [
             dict(
@@ -846,7 +943,7 @@ def update_tfec(scenario, year_slider, filter):
         ]
 
         layout_tfec["barmode"] = 'stack'
-        layout_tfec["title"] = "Total Final Energy Consumption (PJ)"
+        layout_tfec["title"] = "Total Final Energy Consumption ({})".format(units)
 
     elif filter == 'RE':
         data, layout_tfec = tfec_re_share(scenario, year_slider, layout_tfec)
@@ -862,18 +959,20 @@ def update_tfec(scenario, year_slider, filter):
         Input('year_slider_supply', 'value'),
         Input('electricity_visualization_drop', 'value'),
         Input('electricity_type_drop', 'value'),
+        Input('electricity_units', 'value'),
     ],
 )
-def update_supply(scenario, year_slider, visualization, type):
+def update_supply(scenario, year_slider, visualization, type, units):
     layout_supply = copy.deepcopy(layout)
 
     if visualization == 'el_demand':
         if type == 'All':
             data, layout_supply = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
-                                                  "Electricity demand (PJ)")
+                                                  "Electricity demand ({})".format(units), units)
         else:
             dff = df_elec_demand.loc[
                 (df_elec_demand['Scenario'] == scenario) & ((df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
+            dff[elec_demand_variable] *= units_dict[units]
 
             data = [
                 dict(
@@ -887,16 +986,17 @@ def update_supply(scenario, year_slider, visualization, type):
                 for tech in input_elec_demand[type].unique()
             ]
 
-            layout_supply["title"] = "Electricity demand (PJ)"
+            layout_supply["title"] = "Electricity demand ({})".format(units)
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_prod':
         if type == 'All':
             data, layout_supply = get_general_graph(df_supply, year_slider, supply_variable, layout,
-                                                  "Electricity production (PJ)")
+                                                  "Electricity production ({})".format(units), units)
         else:
             dff = df_supply.loc[
                 (df_supply['Scenario'] == scenario) & ((df_supply['y'] >= year_slider[0]) & (df_supply['y'] <= year_slider[1]))]
+            dff[supply_variable] *= units_dict[units]
 
             data = [
                 dict(
@@ -909,7 +1009,7 @@ def update_supply(scenario, year_slider, visualization, type):
                 for tech in input_production[type].unique()
             ]
 
-            layout_supply["title"] = "Electricity production (PJ)"
+            layout_supply["title"] = "Electricity production ({})".format(units)
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_co2':
@@ -985,12 +1085,14 @@ def update_supply(scenario, year_slider, visualization, type):
     Output('el_access_graph', 'figure'),
     [
         Input('year_slider_el_access', 'value'),
+        Input('electricity_units', 'value'),
     ],
 )
-def el_access_graph(year_slider):
+def el_access_graph(year_slider, units):
     layout_access = copy.deepcopy(layout)
 
     dff = df_elec_access.loc[(df_elec_access['Scenario'] == 'SDG7') & ((df_elec_access['y'] >= year_slider[0]) & (df_elec_access['y'] <= year_slider[1]))]
+    dff[elec_access_variable] *= units_dict[units]
 
     data = [
         dict(
@@ -1004,7 +1106,7 @@ def el_access_graph(year_slider):
         for tech in input_elec_access['VISUALIZATION'].unique()
     ]
 
-    layout_access["title"] = "Additional electricity needed for universal access (PJ)"
+    layout_access["title"] = "Additional electricity needed for universal access ({})".format(units)
     layout_access["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_access)
@@ -1014,12 +1116,14 @@ def el_access_graph(year_slider):
     Output('cooking_graph', 'figure'),
     [
         Input('year_slider_cooking', 'value'),
+        Input('energy_units', 'value'),
     ],
 )
-def cooking_graph(year_slider):
+def cooking_graph(year_slider, units):
     layout_cooking = copy.deepcopy(layout)
 
     dff = df_cooking.loc[(df_cooking['Scenario'] == 'SDG7') & ((df_cooking['y'] >= year_slider[0]) & (df_cooking['y'] <= year_slider[1]))]
+    dff[cooking_variable] *= units_dict[units]
 
     data = [
         dict(
@@ -1033,7 +1137,7 @@ def cooking_graph(year_slider):
         for tech in input_cooking['VISUALIZATION'].unique()
     ]
 
-    layout_cooking["title"] = "Additional energy needed for universal access<br>to clean cooking fuels (PJ)"
+    layout_cooking["title"] = "Additional energy needed for universal access<br>to clean cooking fuels ({})".format(units)
     layout_cooking["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_cooking)
@@ -1043,13 +1147,15 @@ def cooking_graph(year_slider):
     Output('efficiency_graph', 'figure'),
     [
         Input('year_slider_efficiency', 'value'),
+        Input('energy_units', 'value'),
     ],
 )
-def efficiency_graph(year_slider):
+def efficiency_graph(year_slider, units):
     layout_efficiency = copy.deepcopy(layout)
 
     dff = df_efficiency.loc[
         (df_efficiency['Scenario'] == 'SDG7') & ((df_efficiency['y'] >= year_slider[0]) & (df_efficiency['y'] <= year_slider[1]))]
+    dff[efficiency_variable] *= units_dict[units]
 
     data = [
         dict(
@@ -1063,7 +1169,7 @@ def efficiency_graph(year_slider):
         for tech in input_efficiency['VISUALIZATION'].unique()
     ]
 
-    layout_efficiency["title"] = "Reduction in energy consumption needed<br>to achieve energy efficiency target (PJ)"
+    layout_efficiency["title"] = "Reduction in energy consumption needed<br>to achieve energy efficiency target ({})".format(units)
     layout_efficiency["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_efficiency)
@@ -1233,6 +1339,16 @@ def toggle_modal(n1, n2, is_open):
 )
 def toggle_modal(n1, n2, is_open):
     if n1 or n2:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("settings", "is_open"),
+    [Input("settings-button", "n_clicks")],
+    [State("settings", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
         return not is_open
     return is_open
 
