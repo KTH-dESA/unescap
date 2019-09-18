@@ -182,8 +182,7 @@ layout = dict(
     plot_bgcolor="#F9F9F9",
     paper_bgcolor="#F9F9F9",
     legend=dict(font=dict(size=10), orientation="h"),
-    #yaxis={'tickformat': '.0f'},
-    #xaxis={'dtick': 1},
+    xaxis={'tickformat': 'd'},
     showlegend=True,
 )
 
