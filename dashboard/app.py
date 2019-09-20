@@ -12,6 +12,7 @@ import copy
 scenarios = ['BAU', 'Current Policies', 'SDG7']
 
 my_path = os.path.abspath(os.path.dirname(__file__))
+#my_path = "C:\\Users\\camilorg\\Box Sync\\UNESCAP\\unescap_model\\dashboard"
 folder = os.path.join(my_path, 'Data')
 input_tfec = pd.read_excel(os.path.join(folder, 'TFEC.xlsx'))
 input_production = pd.read_excel(os.path.join(folder, 'Electricity_generation.xlsx'))
@@ -216,7 +217,7 @@ def get_general_graph(df, year_slider, variable, layout, title, units = None):
     dff = df.loc[(df['y'] >= year_slider[0]) & (df['y'] <= year_slider[1])]
     dff = dff.groupby(['y', 'Scenario']).agg({variable: 'sum'})
     dff = dff.reset_index()
-    dff[variable] *= units_dict[units]
+    dff.loc[:, variable] *= units_dict[units]
 
     data = [
         dict(
@@ -529,7 +530,7 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id='tfec_scenario',
                             options=[{'label': i, 'value': i} for i in scenarios],
-                            value='BAU',
+                            #value='BAU',
                         ),
                         html.P(
                             'Select the range of years to visualize:',
@@ -910,7 +911,7 @@ def update_tfec(scenario, year_slider, filter, units):
     elif filter == 'sector':
         dff = df_tfec.loc[
             (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
-        dff[tfec_variable] *= units_dict[units]
+        dff.loc[:, tfec_variable] *= units_dict[units]
 
         data = [
             dict(
@@ -928,7 +929,7 @@ def update_tfec(scenario, year_slider, filter, units):
     elif filter == 'fuel':
         dff = df_tfec.loc[
             (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
-        dff[tfec_variable] *= units_dict[units]
+        dff.loc[:, tfec_variable] *= units_dict[units]
 
         data = [
             dict(
@@ -971,7 +972,7 @@ def update_supply(scenario, year_slider, visualization, type, units):
         else:
             dff = df_elec_demand.loc[
                 (df_elec_demand['Scenario'] == scenario) & ((df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
-            dff[elec_demand_variable] *= units_dict[units]
+            dff.loc[:, elec_demand_variable] *= units_dict[units]
 
             data = [
                 dict(
@@ -995,7 +996,7 @@ def update_supply(scenario, year_slider, visualization, type, units):
         else:
             dff = df_supply.loc[
                 (df_supply['Scenario'] == scenario) & ((df_supply['y'] >= year_slider[0]) & (df_supply['y'] <= year_slider[1]))]
-            dff[supply_variable] *= units_dict[units]
+            dff.loc[:, supply_variable] *= units_dict[units]
 
             data = [
                 dict(
@@ -1091,7 +1092,7 @@ def el_access_graph(year_slider, units):
     layout_access = copy.deepcopy(layout)
 
     dff = df_elec_access.loc[(df_elec_access['Scenario'] == 'SDG7') & ((df_elec_access['y'] >= year_slider[0]) & (df_elec_access['y'] <= year_slider[1]))]
-    dff[elec_access_variable] *= units_dict[units]
+    dff.loc[:, elec_access_variable] *= units_dict[units]
 
     data = [
         dict(
@@ -1122,7 +1123,7 @@ def cooking_graph(year_slider, units):
     layout_cooking = copy.deepcopy(layout)
 
     dff = df_cooking.loc[(df_cooking['Scenario'] == 'SDG7') & ((df_cooking['y'] >= year_slider[0]) & (df_cooking['y'] <= year_slider[1]))]
-    dff[cooking_variable] *= units_dict[units]
+    dff.loc[:, cooking_variable] *= units_dict[units]
 
     data = [
         dict(
@@ -1154,7 +1155,7 @@ def efficiency_graph(year_slider, units):
 
     dff = df_efficiency.loc[
         (df_efficiency['Scenario'] == 'SDG7') & ((df_efficiency['y'] >= year_slider[0]) & (df_efficiency['y'] <= year_slider[1]))]
-    dff[efficiency_variable] *= units_dict[units]
+    dff.loc[:, efficiency_variable] *= units_dict[units]
 
     data = [
         dict(
