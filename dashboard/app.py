@@ -44,7 +44,6 @@ df_investment = pd.DataFrame(columns=['y', 't', investment_variable, 'Scenario']
 cost_variable = 'TotalDiscountedCost'
 df_cost = pd.DataFrame(columns=['y', cost_variable, 'Scenario'])
 
-# df_costs = pd.DataFrame(columns=['e', 'y', 'AnnualEmissions','Scenario'])
 for scenario in scenarios:
     ##tfec##
     df_tfec_temp = pd.read_csv(os.path.join(folder, scenario, tfec_variable + '.csv'))
@@ -916,8 +915,8 @@ def update_tfec(scenario, year_slider, filter, units):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['Sector'] == sector]['y'],
-                y=dff.loc[dff['Sector'] == sector][tfec_variable],
+                x=dff.loc[dff['Sector'] == sector].groupby('y').sum().index,
+                y=dff.loc[dff['Sector'] == sector].groupby('y').sum()[tfec_variable],
                 name=sector,
                 hovertemplate=hover_template,
             )
@@ -934,8 +933,8 @@ def update_tfec(scenario, year_slider, filter, units):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['Fuel'] == fuel]['y'],
-                y=dff.loc[dff['Fuel'] == fuel][tfec_variable],
+                x=dff.loc[dff['Fuel'] == fuel].groupby('y').sum().index,
+                y=dff.loc[dff['Fuel'] == fuel].groupby('y').sum()[tfec_variable],
                 name=fuel,
                 hovertemplate=hover_template,
             )
@@ -977,8 +976,8 @@ def update_supply(scenario, year_slider, visualization, type, units):
             data = [
                 dict(
                     type="bar",
-                    x=dff.loc[dff[type] == tech]['y'],
-                    y=dff.loc[dff[type] == tech][elec_demand_variable],
+                    x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+                    y=dff.loc[dff[type] == tech].groupby('y').sum()[elec_demand_variable],
                     name=tech,
                     hovertemplate=hover_template,
                 )
@@ -1001,8 +1000,8 @@ def update_supply(scenario, year_slider, visualization, type, units):
             data = [
                 dict(
                     type="bar",
-                    x=dff.loc[dff[type] == tech]['y'],
-                    y=dff.loc[dff[type] == tech][supply_variable],
+                    x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+                    y=dff.loc[dff[type] == tech].groupby('y').sum()[supply_variable],
                     name=tech,
                     hovertemplate=hover_template,
                 )
@@ -1025,8 +1024,8 @@ def update_supply(scenario, year_slider, visualization, type, units):
             data = [
                 dict(
                     type="bar",
-                    x=dff.loc[dff[type] == tech]['y'],
-                    y=dff.loc[dff[type] == tech][emissions_variable],
+                    x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+                    y=dff.loc[dff[type] == tech].groupby('y').sum()[emissions_variable],
                     name=tech,
                     hovertemplate=hover_template,
                 )
@@ -1047,8 +1046,8 @@ def update_supply(scenario, year_slider, visualization, type, units):
             data = [
                 dict(
                     type="bar",
-                    x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-                    y=dff.loc[dff['VISUALIZATION'] == tech][investment_variable],
+                    x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+                    y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
                     name=tech,
                     hovertemplate=hover_template,
                 )
@@ -1068,8 +1067,8 @@ def update_supply(scenario, year_slider, visualization, type, units):
             dict(
                 type="scatter",
                 mode='lines',
-                x=dff.loc[dff['Scenario'] == scenario]['y'],
-                y=dff.loc[dff['Scenario'] == scenario][cost_variable],
+                x=dff.loc[dff['Scenario'] == scenario].groupby('y').sum().index,
+                y=dff.loc[dff['Scenario'] == scenario].groupby('y').sum()[cost_variable],
                 name=scenario,
                 hovertemplate=hover_template
             )
@@ -1097,8 +1096,8 @@ def el_access_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-            y=dff.loc[dff['VISUALIZATION'] == tech][elec_access_variable],
+            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[elec_access_variable],
             name=tech,
             hovertemplate=hover_template,
         )
@@ -1128,8 +1127,8 @@ def cooking_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-            y=dff.loc[dff['VISUALIZATION'] == tech][cooking_variable],
+            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[cooking_variable],
             name=tech,
             hovertemplate=hover_template,
         )
@@ -1160,8 +1159,8 @@ def efficiency_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-            y=dff.loc[dff['VISUALIZATION'] == tech][efficiency_variable],
+            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[efficiency_variable],
             name=tech,
             hovertemplate=hover_template,
         )
@@ -1192,8 +1191,8 @@ def re_graph(year_slider, visualization):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-                y=dff.loc[dff['VISUALIZATION'] == tech][re_capacity_variable],
+                x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+                y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[re_capacity_variable],
                 name=tech,
                 hovertemplate=hover_template,
             )
@@ -1235,8 +1234,8 @@ def re_graph(year_slider, visualization):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['VISUALIZATION'] == tech]['y'],
-                y=dff.loc[dff['VISUALIZATION'] == tech][investment_variable],
+                x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
+                y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
                 name=tech,
                 hovertemplate=hover_template,
             )
