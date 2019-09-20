@@ -410,7 +410,7 @@ app.layout = html.Div(
                                             {'label': 'Mtoe', 'value': 'Mtoe'},
                                             {'label': 'MMboe', 'value': 'MMboe'},
                                         ],
-                                        value='PJ',
+                                        value='Mtoe',
                                     ),
                                     html.P(
                                         [
