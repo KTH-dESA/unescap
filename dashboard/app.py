@@ -530,7 +530,7 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id='tfec_scenario',
                             options=[{'label': i, 'value': i} for i in scenarios],
-                            #value='BAU',
+                            value='BAU'
                         ),
                         html.P(
                             'Select the range of years to visualize:',
@@ -812,8 +812,23 @@ app.layout = html.Div(
 ##### Callbacks #####
 @app.callback(
     [
-        Output('tfec_scenario', 'disabled'),
+        Output('tfec_scenario', 'options'),
+    ],
+    [
+        Input('tfec_type', 'value'),
+    ],
+)
+def set_state(value):
+    if value == 'all':
+        options = [{'label': 'Select...', 'value': 'BAU'}]
+    else:
+        options = [{'label': i, 'value': i} for i in scenarios],
+    return options
+
+@app.callback(
+    [
         Output('tfec_scenario', 'value'),
+        Output('tfec_scenario', 'disabled'),
     ],
     [
         Input('tfec_type', 'value'),
@@ -822,11 +837,11 @@ app.layout = html.Div(
 def set_state(value):
     if value == 'all':
         state = True
-        scenario = None
+        scenario = scenarios[0]
     else:
         state = False
         scenario = scenarios[0]
-    return state, scenario
+    return scenario, state
 
 @app.callback(
     Output('electricity_type_drop', 'value'),
