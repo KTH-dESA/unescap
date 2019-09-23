@@ -12,7 +12,6 @@ import copy
 scenarios = ['BAU', 'Current Policies', 'SDG7']
 
 my_path = os.path.abspath(os.path.dirname(__file__))
-#my_path = "C:\\Users\\camilorg\\Box Sync\\UNESCAP\\unescap_model\\dashboard"
 folder = os.path.join(my_path, 'Data')
 input_tfec = pd.read_excel(os.path.join(folder, 'TFEC.xlsx'))
 input_production = pd.read_excel(os.path.join(folder, 'Electricity_generation.xlsx'))
@@ -265,7 +264,7 @@ app.layout = html.Div(
                             style={"margin-bottom": "0px"},
                         ),
                         html.H5(
-                            "OseMOSYS application",
+                            "OSeMOSYS application",
                             style={"margin-top": "0px"},
                         ),
                     ],
@@ -607,21 +606,35 @@ app.layout = html.Div(
                             value='el_demand'
                         ),
 
-                        html.P("Filter by:", className="control_label"),
-                        dcc.Dropdown(
-                            id='electricity_type_drop',
-                            value='All'
-                        ),
-
                         html.P(
                             'Select the scenario:',
                             className="control_label",
                         ),
                         dcc.Dropdown(
-                            id='scenario_supply',
-                            options=[{'label': i, 'value': i} for i in scenarios],
-                            value='BAU',
+                            id='electricity_scenario',
+                            options=[{'label': 'All', 'value': 'All'}]+[{'label': i, 'value': i} for i in scenarios],
+                            value='All',
+                            clearable=False
                         ),
+                        html.P("Filter by:", className="control_label"),
+                        dcc.Dropdown(
+                            id='electricity_type_drop',
+                            options=[{'label': 'Select...', 'value': 'Select'}],
+                            value='Select',
+                            clearable=False
+                        ),
+                        html.Div(
+                            [
+                                html.P("Select sector:", className="control_label"),
+                                dcc.Dropdown(
+                                    id='electricity_sector',
+                                    value='All',
+                                    clearable=False,
+                                ),
+                            ],
+                            id='electricity_sector_div',
+                        ),
+
                         html.P(
                             'Select the range of years to visualize:',
                             className="control_label",
@@ -844,71 +857,104 @@ def set_state(value):
     return scenario, state
 
 @app.callback(
-    Output('electricity_type_drop', 'value'),
+    [
+        Output('electricity_scenario', 'value'),
+        Output('electricity_scenario', 'disabled'),
+        Output('electricity_type_drop', 'value'),
+    ],
     [
         Input('electricity_visualization_drop', 'value'),
     ],
 )
 def update_elec_value(value):
-    if value == 'el_prod':
-        val = 'All'
+    if value == 'el_cost':
+        state = True
     else:
-        val = 'All'
-    return val
+        state = False
+    return 'All', state, 'Select'
 
 @app.callback(
     Output('electricity_type_drop', 'options'),
     [
         Input('electricity_visualization_drop', 'value'),
+        Input('electricity_scenario', 'value'),
     ],
 )
-def update_elec_type(value):
-    if value == 'el_prod':
+def update_elec_type(visualization, scenario):
+    if scenario == 'All':
         options = [
-                      {'label': 'All', 'value': 'All'},
-                      {'label': 'Source', 'value': 'Source'},
-                      {'label': 'Type', 'value': 'Use'},
-            ]
-    elif value == 'el_demand':
-        options = [
-                      {'label': 'All', 'value': 'All'},
-                      {'label': 'Sector', 'value': 'Sector'},
-                      {'label': 'Use', 'value': 'Use'},
-            ]
-    elif value == 'el_co2':
-        options = [
-            {'label': 'All', 'value': 'All'},
             {'label': 'Source', 'value': 'Source'},
+            {'label': 'Sector', 'value': 'Sector'},
             {'label': 'Type', 'value': 'Use'},
+            {'label': 'Select...', 'value': 'Select', 'disabled': True},
         ]
-    elif value == 'el_inv':
-        options = [
-            {'label': 'All', 'value': 'All'},
-            {'label': 'Source', 'value': 'Source'},
-        ]
-    elif value == 'el_cost':
-        options = [
-            {'label': 'All', 'value': 'All'},
-        ]
+    else:
+        if visualization == 'el_prod':
+            options = [
+                {'label': 'Source', 'value': 'Source'},
+                {'label': 'Type', 'value': 'Use'},
+                {'label': 'Select...', 'value': 'Select', 'disabled': True},
+            ]
+        elif visualization == 'el_demand':
+            options = [
+                {'label': 'Sector', 'value': 'Sector'},
+                {'label': 'Use', 'value': 'Use'},
+                {'label': 'Select...', 'value': 'Select', 'disabled': True},
+            ]
+        elif visualization == 'el_co2':
+            options = [
+                {'label': 'Source', 'value': 'Source'},
+                {'label': 'Type', 'value': 'Use'},
+                {'label': 'Select...', 'value': 'Select', 'disabled': True},
+            ]
+        elif (visualization == 'el_inv') or (visualization == 'el_cost'):
+            options = [
+                {'label': 'Select...', 'value': 'Select', 'disabled': True},
+            ]
     return options
 
 @app.callback(
+    Output('electricity_type_drop', 'disabled'),
     [
-        Output('scenario_supply', 'disabled'),
-        Output('scenario_supply', 'value'),
+        Input('electricity_scenario', 'value'),
+        Input('electricity_visualization_drop', 'value'),
     ],
+)
+def set_state(scenario, visualization):
+    if (scenario == 'All') or (visualization == 'el_inv') or (visualization == 'el_cost'):
+        state = True
+    else:
+        state = False
+    return state
+
+@app.callback(
+    Output('electricity_sector_div', 'style'),
     [
         Input('electricity_type_drop', 'value'),
     ],
 )
 def set_state(value):
-    if value == 'All':
-        state = True
-        scenario = None
+    if value == 'Use':
+        style = None
     else:
-        state = False
-        scenario = scenarios[0]
-    return state, scenario
+        style = {'display': 'none'}
+    return style
+
+@app.callback(
+    Output('electricity_sector', 'options'),
+    [
+        Input('electricity_type_drop', 'value'),
+        Input('electricity_scenario', 'value'),
+        Input('year_slider_supply', 'value'),
+    ],
+)
+def set_state(value, scenario, year_slider):
+    dff = df_elec_demand.loc[
+        (df_elec_demand['Scenario'] == scenario) & (
+                    (df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
+    if value == 'Use':
+        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in dff['Sector'].unique()]
+    return options
 
 @app.callback(
     Output('tfec_graph', 'figure'),
@@ -970,42 +1016,58 @@ def update_tfec(scenario, year_slider, filter, units):
 @app.callback(
     Output('supply_graph', 'figure'),
     [
-        Input('scenario_supply', 'value'),
+        Input('electricity_scenario', 'value'),
         Input('year_slider_supply', 'value'),
         Input('electricity_visualization_drop', 'value'),
         Input('electricity_type_drop', 'value'),
         Input('electricity_units', 'value'),
+        Input('electricity_sector', 'value'),
     ],
 )
-def update_supply(scenario, year_slider, visualization, type, units):
+def update_supply(scenario, year_slider, visualization, type, units, sector):
     layout_supply = copy.deepcopy(layout)
 
     if visualization == 'el_demand':
-        if type == 'All':
+        if scenario == 'All':
             data, layout_supply = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
                                                   "Electricity demand ({})".format(units), units)
         else:
             dff = df_elec_demand.loc[
                 (df_elec_demand['Scenario'] == scenario) & ((df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
             dff.loc[:, elec_demand_variable] *= units_dict[units]
+            if (type == 'Use') & (sector != 'All'):
+                data = [
+                    dict(
+                        type="bar",
+                        x=dff.loc[(dff['Sector'] == sector) & (dff[type] == tech)].groupby('y').sum().index,
+                        y=dff.loc[(dff['Sector'] == sector) & (dff[type] == tech)].groupby('y').sum()[elec_demand_variable],
+                        name=tech,
+                        hovertemplate=hover_template,
+                    )
 
-            data = [
-                dict(
-                    type="bar",
-                    x=dff.loc[dff[type] == tech].groupby('y').sum().index,
-                    y=dff.loc[dff[type] == tech].groupby('y').sum()[elec_demand_variable],
-                    name=tech,
-                    hovertemplate=hover_template,
-                )
+                    for tech in input_elec_demand[type].unique()
+                ]
 
-                for tech in input_elec_demand[type].unique()
-            ]
+                layout_supply["title"] = "Electricity demand in the {} sector ({})".format(sector, units)
+                layout_supply["barmode"] = 'stack'
+            else:
+                data = [
+                    dict(
+                        type="bar",
+                        x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+                        y=dff.loc[dff[type] == tech].groupby('y').sum()[elec_demand_variable],
+                        name=tech,
+                        hovertemplate=hover_template,
+                    )
 
-            layout_supply["title"] = "Electricity demand ({})".format(units)
-            layout_supply["barmode"] = 'stack'
+                    for tech in input_elec_demand[type].unique()
+                ]
+
+                layout_supply["title"] = "Electricity demand ({})".format(units)
+                layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_prod':
-        if type == 'All':
+        if scenario == 'All':
             data, layout_supply = get_general_graph(df_supply, year_slider, supply_variable, layout,
                                                   "Electricity production ({})".format(units), units)
         else:
@@ -1028,7 +1090,7 @@ def update_supply(scenario, year_slider, visualization, type, units):
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_co2':
-        if type == 'All':
+        if scenario == 'All':
             data, layout_supply = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
                                                   "Total CO2 Emissions (Mton)")
 
@@ -1052,7 +1114,7 @@ def update_supply(scenario, year_slider, visualization, type, units):
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_inv':
-        if type == 'All':
+        if scenario == 'All':
             data, layout_supply = get_general_graph(df_investment, year_slider, investment_variable, layout,
                                                   "Capital Investment (M$)")
         else:
