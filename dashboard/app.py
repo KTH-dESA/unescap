@@ -410,6 +410,7 @@ app.layout = html.Div(
                                             {'label': 'MMboe', 'value': 'MMboe'},
                                         ],
                                         value='Mtoe',
+                                        clearable=False,
                                     ),
                                     html.P(
                                         [
@@ -435,6 +436,7 @@ app.layout = html.Div(
                                             {'label': 'TWh', 'value': 'TWh'},
                                         ],
                                         value='TWh',
+                                        clearable=False,
                                     ),
                                 ],
                                 className="container",
@@ -529,7 +531,8 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id='tfec_scenario',
                             options=[{'label': i, 'value': i} for i in scenarios],
-                            value='BAU'
+                            value='BAU',
+                            clearable = False,
                         ),
                         html.P(
                             'Select the range of years to visualize:',
@@ -603,7 +606,8 @@ app.layout = html.Div(
                                 {'label': 'Annual investment required', 'value': 'el_inv'},
                                 {'label': 'Annual discounted cost', 'value': 'el_cost'},
                             ],
-                            value='el_demand'
+                            value='el_demand',
+                            clearable = False,
                         ),
 
                         html.P(
@@ -883,16 +887,13 @@ def update_elec_value(value):
 def update_elec_type(visualization, scenario):
     if scenario == 'All':
         options = [
-            {'label': 'Source', 'value': 'Source'},
-            {'label': 'Sector', 'value': 'Sector'},
-            {'label': 'Type', 'value': 'Use'},
             {'label': 'Select...', 'value': 'Select', 'disabled': True},
         ]
     else:
         if visualization == 'el_prod':
             options = [
                 {'label': 'Source', 'value': 'Source'},
-                {'label': 'Type', 'value': 'Use'},
+                {'label': 'Type', 'value': 'Type'},
                 {'label': 'Select...', 'value': 'Select', 'disabled': True},
             ]
         elif visualization == 'el_demand':
@@ -904,7 +905,7 @@ def update_elec_type(visualization, scenario):
         elif visualization == 'el_co2':
             options = [
                 {'label': 'Source', 'value': 'Source'},
-                {'label': 'Type', 'value': 'Use'},
+                {'label': 'Type', 'value': 'Type'},
                 {'label': 'Select...', 'value': 'Select', 'disabled': True},
             ]
         elif (visualization == 'el_inv') or (visualization == 'el_cost'):
@@ -952,6 +953,8 @@ def set_state(value, scenario, year_slider):
     dff = df_elec_demand.loc[
         (df_elec_demand['Scenario'] == scenario) & (
                     (df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
+    # options = [{'label': 'Select...', 'value': 'Select'}]
+    options = ''
     if value == 'Use':
         options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in dff['Sector'].unique()]
     return options
@@ -1026,12 +1029,12 @@ def update_tfec(scenario, year_slider, filter, units):
 )
 def update_supply(scenario, year_slider, visualization, type, units, sector):
     layout_supply = copy.deepcopy(layout)
-
+    data = ''
     if visualization == 'el_demand':
         if scenario == 'All':
             data, layout_supply = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
                                                   "Electricity demand ({})".format(units), units)
-        else:
+        elif scenario != 'Select':
             dff = df_elec_demand.loc[
                 (df_elec_demand['Scenario'] == scenario) & ((df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
             dff.loc[:, elec_demand_variable] *= units_dict[units]
@@ -1050,7 +1053,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
 
                 layout_supply["title"] = "Electricity demand in the {} sector ({})".format(sector, units)
                 layout_supply["barmode"] = 'stack'
-            else:
+            elif (sector != 'Select') & (type != 'Select'):
                 data = [
                     dict(
                         type="bar",
@@ -1070,7 +1073,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
         if scenario == 'All':
             data, layout_supply = get_general_graph(df_supply, year_slider, supply_variable, layout,
                                                   "Electricity production ({})".format(units), units)
-        else:
+        elif (sector != 'Select') & (type != 'Select'):
             dff = df_supply.loc[
                 (df_supply['Scenario'] == scenario) & ((df_supply['y'] >= year_slider[0]) & (df_supply['y'] <= year_slider[1]))]
             dff.loc[:, supply_variable] *= units_dict[units]
@@ -1094,7 +1097,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
             data, layout_supply = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
                                                   "Total CO2 Emissions (Mton)")
 
-        else:
+        elif (sector != 'Select') & (type != 'Select'):
             dff = df_emissions.loc[
                 (df_emissions['Scenario'] == scenario) & (
                             (df_emissions['y'] >= year_slider[0]) & (df_emissions['y'] <= year_slider[1]))]
