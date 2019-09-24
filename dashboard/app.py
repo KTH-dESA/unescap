@@ -185,7 +185,7 @@ layout = dict(
     showlegend=True,
 )
 
-hover_template = '<br><b>Value</b>: %{y:.2f}' + '<br><b>Year</b>: %{x}'
+hover_template = '<b>Value</b>: %{y:.2f}' + '<br><b>Year</b>: %{x}'
 
 units_dict = {'PJ': 1, 'Mtoe': 0.0238845897, 'MMboe': 0.163456, 'TWh': 0.277777778, None: 1}
 
