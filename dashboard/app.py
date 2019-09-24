@@ -347,21 +347,20 @@ app.layout = html.Div(
                         dbc.ModalBody(
                             [
                                 html.H6("Business as usual (BAU):"),
-                                html.P("This scenario follows historical demand trends based on simple projections by using "
-                                       "GDP and population growth. It does not consider emission limits and renewable targets. "
-                                       "GDP and population growth are calculated from historical data as 4.96 and 1.33% annual, respectively. "
-                                       "For each sector, the final energy demand is met by a fuel mix reflecting the current shares in TFEC. "
-                                       "The trend is extrapolated to 2050. Energy efficiency improvements are not considered."),
+                                html.P("This scenario follows historical demand trends based on simple projections by using GDP and population growth. "
+                                       "It does not consider emission limits and renewable targets. GDP and population growth are calculated "
+                                       "from historical data as 4.96 and 1.33% annual, respectively. For each sector, the final energy demand "
+                                       "is met by a fuel mix reflecting the current shares in TFEC. The trend is extrapolated to 2030. "
+                                       "Energy efficiency improvements are not considered."),
                                 html.H6("Current Policies:"),
-                                html.P("Modified from the BAU scenario. All base assumptions as in this scenario. In addition, "
-                                       "a minimum renewable energy share in the energy mix, from 23 to 31% from 2025 to 2050, "
-                                       "according to current policies in the country. The renewable energy options considered to "
-                                       "meet the target are hydro, geothermal, solar and wind. Biomass is not considered."),
+                                html.P("Modified from the BAU scenario. All base assumptions as in this scenario. "
+                                       "In addition, a target of minimum renewable share in primary energy supply compatible with reduction of CO2 emissions "
+                                       "in the energy sector by 11% in 2030 is introduced, according to the unconditional NDCs of the country. "
+                                       "The renewable energy options considered to meet the target are hydro, geothermal, solar and wind. Biomass is not considered."),
                                 html.H6("SDG7:"),
-                                html.P("Modified from the Current Policies scenario. Here, all SDG7 targets (along with NDC targets) "
-                                       "are achieved and investments in electricity transmission and distribution infrastructure for "
-                                       "electrifying the remaining 2% population are allowed. Energy efficiency measures in the "
-                                       "residential and industrial sector are also allowed.")
+                                html.P("Modified from the Current Policies scenario. Here, all SDG7 targets (along with NDC targets) are achieved and investments in "
+                                       "electricity transmission and distribution infrastructure for electrifying the remaining 2% population are allowed. "
+                                       "Energy efficiency measures in the residential and industrial sector are also allowed.")
                             ]
                         ),
                         dbc.ModalFooter(
