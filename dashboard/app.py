@@ -736,7 +736,7 @@ app.layout = html.Div(
                                                 dcc.Dropdown(
                                                     id='re_drop',
                                                     options=[
-                                                        {'label': 'RE annual capacity', 'value': 're_capacity'},
+                                                        {'label': 'RE accumulated capacity', 'value': 're_capacity'},
                                                         {'label': 'RE share in TFEC', 'value': 're_tfec'},
                                                         {'label': 'RE share in energy sector', 'value': 're_energy_sector'},
                                                         {'label': 'Annual RE investment', 'value': 're_investment'},
