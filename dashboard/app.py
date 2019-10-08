@@ -82,7 +82,7 @@ for scenario in scenarios:
     df_emissions_temp = pd.read_csv(os.path.join(folder, scenario, emissions_variable + '.csv'))
     df_emissions_temp.drop(columns=['r'], inplace=True)
     df_emissions_temp = df_emissions_temp.loc[df_emissions_temp[emissions_variable] > 0]
-    df_emissions_temp = df_emissions_temp.loc[df_emissions_temp['t'].isin(input_production['OSEMOSYS'])]
+    # df_emissions_temp = df_emissions_temp.loc[df_emissions_temp['t'].isin(input_production['OSEMOSYS'])]
     df_emissions_temp['Scenario'] = scenario
     df_emissions_temp = df_emissions_temp.reset_index(drop=True)
     df_emissions_temp['Use'] = df_emissions_temp['t'].map(input_production.set_index('OSEMOSYS')['Use'].T.to_dict())
@@ -510,29 +510,48 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.H6('Total Final Energy Consumption (TFEC)'),
-                        html.P("Filter by:", className="control_label"),
-                        dcc.RadioItems(
-                            id="tfec_type",
-                            options=[
-                                {"label": "All ", "value": "all"},
-                                {"label": "By sector ", "value": "sector"},
-                                {"label": "By fuel ", "value": "fuel"},
-                                {"label": "Share of RES ", "value": "RE"},
-                            ],
-                            value="all",
-                            labelStyle={"display": "inline"},
-                            className="dcc_control",
+                        html.P(
+                            'Select the visualization:',
+                            className="control_label",
                         ),
+                        dcc.Dropdown(
+                            id='tfec_visualization_drop',
+                            options=[
+                                {'label': 'Total Final Energy Consumption', 'value': 'tfect_plot'},
+                                {'label': 'RE share in TFEC', 'value': 'tfec_re'},
+                                {'label': 'CO2 emissions in TFEC', 'value': 'tfec_co2'},
+                            ],
+                            value='tfect_plot',
+                            clearable = False,
+                        ),
+
                         html.P(
                             'Select the scenario:',
                             className="control_label",
                         ),
                         dcc.Dropdown(
                             id='tfec_scenario',
-                            options=[{'label': i, 'value': i} for i in scenarios],
-                            value='BAU',
-                            clearable = False,
+                            clearable=False
                         ),
+                        html.P("Filter by:", className="control_label"),
+                        dcc.Dropdown(
+                            id='tfec_type_drop',
+                            options=[{'label': 'Select...', 'value': 'Select'}],
+                            value='Select',
+                            clearable=False
+                        ),
+                        html.Div(
+                            [
+                                html.P("Select sector:", className="control_label"),
+                                dcc.Dropdown(
+                                    id='tfec_sector',
+                                    value='All',
+                                    clearable=False,
+                                ),
+                            ],
+                            id='tfec_sector_div',
+                        ),
+
                         html.P(
                             'Select the range of years to visualize:',
                             className="control_label",
@@ -542,9 +561,10 @@ app.layout = html.Div(
                             min=years.min(),
                             max=2030,
                             value=[years.min(), 2030],
-                            marks={y: y for y in range(years.min(), 2031, 2)},
+                            marks={y: y for y in range(int(years.min()), 2031, 2)},
                             className="dcc_control",
                         ),
+
                         html.Div(
                             [
 
@@ -828,36 +848,103 @@ app.layout = html.Div(
 ##### Callbacks #####
 @app.callback(
     [
-        Output('tfec_scenario', 'options'),
+        Output('tfec_scenario', 'disabled'),
+        Output('tfec_scenario', 'value'),
+        Output('tfec_type_drop', 'value'),
     ],
     [
-        Input('tfec_type', 'value'),
+        Input('tfec_visualization_drop', 'value'),
     ],
 )
-def set_state(value):
-    if value == 'all':
-        options = [{'label': 'Select...', 'value': 'BAU'}]
+def update_elec_value(value):
+    if value == 'tfec_co2':
+        scenario = 'All'
+        state = True
+    elif value == 'tfec_re':
+        scenario = 'BAU'
+        state = False
     else:
-        options = [{'label': i, 'value': i} for i in scenarios],
-    return options
+        scenario = 'All'
+        state = False
+    return state, scenario, 'Select'
 
 @app.callback(
     [
-        Output('tfec_scenario', 'value'),
-        Output('tfec_scenario', 'disabled'),
+        Output('tfec_scenario', 'options'),
     ],
     [
-        Input('tfec_type', 'value'),
+        Input('tfec_visualization_drop', 'value'),
+    ],
+)
+def update_elec_value(value):
+    if value == 'tfec_re':
+        options = [{'label': i, 'value': i} for i in scenarios],
+    else:
+        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in scenarios],
+    return options
+
+@app.callback(
+    Output('tfec_type_drop', 'options'),
+    [
+        Input('tfec_scenario', 'value'),
+    ],
+)
+def update_elec_type(scenario):
+    if scenario == 'All':
+        options = [
+            {'label': 'Select...', 'value': 'Select', 'disabled': True},
+        ]
+    else:
+        options = [
+            {'label': 'Sector', 'value': 'Sector'},
+            {'label': 'Fuel', 'value': 'Fuel'},
+            {'label': 'Select...', 'value': 'Select', 'disabled': True},
+        ]
+    return options
+
+@app.callback(
+    Output('tfec_type_drop', 'disabled'),
+    [
+        Input('tfec_scenario', 'value'),
+        Input('tfec_visualization_drop', 'value'),
+    ],
+)
+def set_state(scenario, visualization):
+    if (scenario == 'All') or (visualization == 'tfec_re') or (visualization == 'tfec_co2'):
+        state = True
+    else:
+        state = False
+    return state
+
+@app.callback(
+    Output('tfec_sector_div', 'style'),
+    [
+        Input('tfec_type_drop', 'value'),
     ],
 )
 def set_state(value):
-    if value == 'all':
-        state = True
-        scenario = scenarios[0]
+    if value == 'Fuel':
+        style = None
     else:
-        state = False
-        scenario = scenarios[0]
-    return scenario, state
+        style = {'display': 'none'}
+    return style
+
+@app.callback(
+    Output('tfec_sector', 'options'),
+    [
+        Input('tfec_type_drop', 'value'),
+        Input('tfec_scenario', 'value'),
+        Input('year_slider', 'value'),
+    ],
+)
+def set_state(value, scenario, year_slider):
+    dff = df_tfec.loc[
+        (df_tfec['Scenario'] == scenario) & (
+                    (df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
+    options = ''
+    if value == 'Fuel':
+        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in dff['Sector'].unique()]
+    return options
 
 @app.callback(
     [
@@ -952,7 +1039,6 @@ def set_state(value, scenario, year_slider):
     dff = df_elec_demand.loc[
         (df_elec_demand['Scenario'] == scenario) & (
                     (df_elec_demand['y'] >= year_slider[0]) & (df_elec_demand['y'] <= year_slider[1]))]
-    # options = [{'label': 'Select...', 'value': 'Select'}]
     options = ''
     if value == 'Use':
         options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in dff['Sector'].unique()]
@@ -963,57 +1049,66 @@ def set_state(value, scenario, year_slider):
     [
         Input('tfec_scenario', 'value'),
         Input('year_slider', 'value'),
-        Input('tfec_type', 'value'),
+        Input('tfec_visualization_drop', 'value'),
+        Input('tfec_type_drop', 'value'),
         Input('energy_units', 'value'),
+        Input('tfec_sector', 'value'),
     ],
 )
-def update_tfec(scenario, year_slider, filter, units):
+def update_tfec(scenario, year_slider, visualization, type, units, sector):
     layout_tfec = copy.deepcopy(layout)
-    if filter == 'all':
-        data, layout_tfec = get_general_graph(df_tfec, year_slider, tfec_variable, layout, "Total Final Energy Consumption ({})".format(units), units)
-    elif filter == 'sector':
-        dff = df_tfec.loc[
-            (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
-        dff.loc[:, tfec_variable] *= units_dict[units]
+    data = ''
+    if visualization == 'tfect_plot':
+        if scenario == 'All':
+            data, layout_tfec = get_general_graph(df_tfec, year_slider, tfec_variable, layout,
+                                                  "Total Final Energy Consumption ({})".format(units), units)
+        elif scenario != 'Select':
+            dff = df_tfec.loc[
+                (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
+            dff.loc[:, tfec_variable] *= units_dict[units]
+            if (type == 'Fuel') & (sector != 'All'):
+                data = [
+                    dict(
+                        type="bar",
+                        x=dff.loc[(dff['Sector'] == sector) & (dff[type] == tech)].groupby('y').sum().index,
+                        y=dff.loc[(dff['Sector'] == sector) & (dff[type] == tech)].groupby('y').sum()[tfec_variable],
+                        name=tech,
+                        hovertemplate=hover_template,
+                        marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
+                    )
 
-        data = [
-            dict(
-                type="bar",
-                x=dff.loc[dff['Sector'] == sector].groupby('y').sum().index,
-                y=dff.loc[dff['Sector'] == sector].groupby('y').sum()[tfec_variable],
-                name=sector,
-                hovertemplate=hover_template,
-            )
-            for sector in input_tfec['Sector'].unique()
-        ]
+                    for tech in input_tfec[type].unique()
+                ]
 
-        layout_tfec["barmode"] = 'stack'
-        layout_tfec["title"] = "Total Final Energy Consumption ({})".format(units)
-    elif filter == 'fuel':
-        dff = df_tfec.loc[
-            (df_tfec['Scenario'] == scenario) & ((df_tfec['y'] >= year_slider[0]) & (df_tfec['y'] <= year_slider[1]))]
-        dff.loc[:, tfec_variable] *= units_dict[units]
+                layout_tfec["title"] = "Total final energy consumption in the {} sector ({})".format(sector, units)
+                layout_tfec["barmode"] = 'stack'
+            elif (sector != 'Select') & (type != 'Select'):
+                data = [
+                    dict(
+                        type="bar",
+                        x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+                        y=dff.loc[dff[type] == tech].groupby('y').sum()[tfec_variable],
+                        name=tech,
+                        hovertemplate=hover_template,
+                        marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
+                    )
 
-        data = [
-            dict(
-                type="bar",
-                x=dff.loc[dff['Fuel'] == fuel].groupby('y').sum().index,
-                y=dff.loc[dff['Fuel'] == fuel].groupby('y').sum()[tfec_variable],
-                name=fuel,
-                hovertemplate=hover_template,
-            )
-            for fuel in input_tfec['Fuel'].unique()
-        ]
+                    for tech in input_tfec[type].unique()
+                ]
 
-        layout_tfec["barmode"] = 'stack'
-        layout_tfec["title"] = "Total Final Energy Consumption ({})".format(units)
+                layout_tfec["title"] = "Total final energy consumption ({})".format(units)
+                layout_tfec["barmode"] = 'stack'
 
-    elif filter == 'RE':
+    elif visualization == 'tfec_co2':
+        if scenario == 'All':
+            data, layout_tfec = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
+                                                    "Total CO2 Emissions (Mton)")
+
+    elif visualization == 'tfec_re':
         data, layout_tfec = tfec_re_share(scenario, year_slider, layout_tfec)
 
     figure = dict(data=data, layout=layout_tfec)
     return figure
-
 
 @app.callback(
     Output('supply_graph', 'figure'),
@@ -1045,6 +1140,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                         y=dff.loc[(dff['Sector'] == sector) & (dff[type] == tech)].groupby('y').sum()[elec_demand_variable],
                         name=tech,
                         hovertemplate=hover_template,
+                        marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                     )
 
                     for tech in input_elec_demand[type].unique()
@@ -1060,6 +1156,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                         y=dff.loc[dff[type] == tech].groupby('y').sum()[elec_demand_variable],
                         name=tech,
                         hovertemplate=hover_template,
+                        marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                     )
 
                     for tech in input_elec_demand[type].unique()
@@ -1084,6 +1181,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                     y=dff.loc[dff[type] == tech].groupby('y').sum()[supply_variable],
                     name=tech,
                     hovertemplate=hover_template,
+                    marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                 )
                 for tech in input_production[type].unique()
             ]
@@ -1092,14 +1190,15 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_co2':
+        dff = df_emissions.loc[df_emissions['t'].isin(input_production['OSEMOSYS'])]
         if scenario == 'All':
-            data, layout_supply = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
+            data, layout_supply = get_general_graph(dff, year_slider, emissions_variable, layout,
                                                   "Total CO2 Emissions (Mton)")
 
         elif (sector != 'Select') & (type != 'Select'):
-            dff = df_emissions.loc[
-                (df_emissions['Scenario'] == scenario) & (
-                            (df_emissions['y'] >= year_slider[0]) & (df_emissions['y'] <= year_slider[1]))]
+            dff = dff.loc[
+                (dff['Scenario'] == scenario) & (
+                            (dff['y'] >= year_slider[0]) & (dff['y'] <= year_slider[1]))]
 
             data = [
                 dict(
@@ -1108,6 +1207,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                     y=dff.loc[dff[type] == tech].groupby('y').sum()[emissions_variable],
                     name=tech,
                     hovertemplate=hover_template,
+                    marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                 )
                 for tech in input_production[type].unique()
             ]
@@ -1130,6 +1230,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                     y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
                     name=tech,
                     hovertemplate=hover_template,
+                    marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                 )
 
                 for tech in input_production['VISUALIZATION'].unique()
@@ -1180,6 +1281,7 @@ def el_access_graph(year_slider, units):
             y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[elec_access_variable],
             name=tech,
             hovertemplate=hover_template,
+            marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
         for tech in input_elec_access['VISUALIZATION'].unique()
@@ -1211,6 +1313,7 @@ def cooking_graph(year_slider, units):
             y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[cooking_variable],
             name=tech,
             hovertemplate=hover_template,
+            marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
         for tech in input_cooking['VISUALIZATION'].unique()
@@ -1243,6 +1346,7 @@ def efficiency_graph(year_slider, units):
             y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[efficiency_variable],
             name=tech,
             hovertemplate=hover_template,
+            marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
         for tech in input_efficiency['VISUALIZATION'].unique()
@@ -1275,6 +1379,7 @@ def re_graph(year_slider, visualization):
                 y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[re_capacity_variable],
                 name=tech,
                 hovertemplate=hover_template,
+                marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
 
             for tech in input_re_capacity['VISUALIZATION'].unique()
@@ -1300,6 +1405,7 @@ def re_graph(year_slider, visualization):
                 y=dff.loc[dff['Type'] == type]['Share'],
                 name=type,
                 hovertemplate=hover_template,
+                marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
             for type in input_production['Type'].unique()
         ]
@@ -1318,6 +1424,7 @@ def re_graph(year_slider, visualization):
                 y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
                 name=tech,
                 hovertemplate=hover_template,
+                marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
 
             for tech in input_re_capacity['VISUALIZATION'].unique()
