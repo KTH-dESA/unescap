@@ -620,7 +620,7 @@ app.layout = html.Div(
                             id='electricity_visualization_drop',
                             options=[
                                 {'label': 'Electricity demand', 'value': 'el_demand'},
-                                {'label': 'Electricity generation', 'value': 'el_prod'},
+                                {'label': 'Electricity supply', 'value': 'el_prod'},
                                 {'label': 'CO2 emissions', 'value': 'el_co2'},
                                 {'label': 'Annual investment required', 'value': 'el_inv'},
                                 {'label': 'Annual discounted cost', 'value': 'el_cost'},
@@ -1168,7 +1168,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
     elif visualization == 'el_prod':
         if scenario == 'All':
             data, layout_supply = get_general_graph(df_supply, year_slider, supply_variable, layout,
-                                                  "Electricity production ({})".format(units), units)
+                                                  "Electricity supply ({})".format(units), units)
         elif (sector != 'Select') & (type != 'Select'):
             dff = df_supply.loc[
                 (df_supply['Scenario'] == scenario) & ((df_supply['y'] >= year_slider[0]) & (df_supply['y'] <= year_slider[1]))]
@@ -1186,7 +1186,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                 for tech in input_production[type].unique()
             ]
 
-            layout_supply["title"] = "Electricity production ({})".format(units)
+            layout_supply["title"] = "Electricity supply ({})".format(units)
             layout_supply["barmode"] = 'stack'
 
     elif visualization == 'el_co2':
