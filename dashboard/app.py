@@ -239,7 +239,28 @@ app = dash.Dash(__name__)
 server = app.server
 
 app.layout = html.Div(
-    [
+    [   dbc.Nav(
+            children=[
+                dbc.DropdownMenu(
+                    nav=True,
+                    in_navbar=True,
+                    label="About",
+                    right=True,
+                    children=[
+                        dbc.DropdownMenuItem("Model and Results:", header = True, style = {'fontSize': 18}),
+                        dbc.DropdownMenuItem("Copyright CCBY 4.0 Francesco Gardumi",
+                                             href='https://creativecommons.org/licenses/by/4.0/',
+                                             style = {'fontSize': 14}),
+                        dbc.DropdownMenuItem("Interface:", header = True, style = {'fontSize': 18}),
+                        dbc.DropdownMenuItem('MIT License Copyright 2019 Camilo Ramirez',
+                                             href='https://choosealicense.com/licenses/mit/',
+                                             style = {'fontSize': 14})
+                    ],
+                ),
+                dbc.NavItem(dbc.NavLink("Github", href="https://github.com/KTH-dESA/unescap")),
+            ],
+            horizontal = 'end',
+        ),
         html.Div(
             [
                 html.Div(
