@@ -145,3 +145,9 @@ body {
   pointer-events: all;
   transform: translate(30px, 349px);
 }
+
+.toggle-button {
+	position: absolute;
+	left:    10px;
+	bottom:   10px;
+}
