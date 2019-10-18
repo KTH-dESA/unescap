@@ -1,0 +1,4 @@
+Modified from the BAU scenario. All base assumptions as in this scenario. 
+In addition, a target of minimum renewable share in primary energy supply compatible with reduction of CO2 emissions 
+in the energy sector by 11% in 2030 is introduced, according to the unconditional NDCs of the country. 
+The renewable energy options considered to meet the target are hydro, geothermal, solar and wind. Biomass is not considered.

@@ -13,6 +13,16 @@ scenarios = ['BAU', 'Current Policies', 'SDG7']
 
 my_path = os.path.abspath(os.path.dirname(__file__))
 folder = os.path.join(my_path, 'Data')
+descriptions = {'bau_scenario': open(os.path.join(folder, 'Descriptions', 'bau_scenario.txt')).read(),
+                'current_policies_scenario': open(os.path.join(folder, 'Descriptions', 'current_policies_scenario.txt')).read(),
+                'sdg7_scenario': open(os.path.join(folder, 'Descriptions', 'sdg7_scenario.txt')).read(),
+                'electricity': open(os.path.join(folder, 'Descriptions', 'electricity.txt')).read(),
+                'sdg7.1.1': open(os.path.join(folder, 'Descriptions', 'sdg7.1.1.txt')).read(),
+                'sdg7.1.2': open(os.path.join(folder, 'Descriptions', 'sdg7.1.2.txt')).read(),
+                'sdg7.2': open(os.path.join(folder, 'Descriptions', 'sdg7.2.txt')).read(),
+                'sdg7.3': open(os.path.join(folder, 'Descriptions', 'sdg7.3.txt')).read(),
+                'tfec': open(os.path.join(folder, 'Descriptions', 'tfec.txt')).read(),
+                }
 input_tfec = pd.read_excel(os.path.join(folder, 'TFEC.xlsx'))
 input_production = pd.read_excel(os.path.join(folder, 'Electricity_generation.xlsx'))
 input_tfec_re = pd.read_excel(os.path.join(folder, 'TFEC_renewables.xlsx'))
@@ -368,20 +378,11 @@ app.layout = html.Div(
                         dbc.ModalBody(
                             [
                                 html.H6("Business as usual (BAU):"),
-                                html.P("This scenario follows historical demand trends based on simple projections by using GDP and population growth. "
-                                       "It does not consider emission limits and renewable targets. GDP and population growth are calculated "
-                                       "from historical data as 4.96 and 1.33% annual, respectively. For each sector, the final energy demand "
-                                       "is met by a fuel mix reflecting the current shares in TFEC. The trend is extrapolated to 2030. "
-                                       "Energy efficiency improvements are not considered."),
+                                html.P(descriptions['bau_scenario']),
                                 html.H6("Current Policies:"),
-                                html.P("Modified from the BAU scenario. All base assumptions as in this scenario. "
-                                       "In addition, a target of minimum renewable share in primary energy supply compatible with reduction of CO2 emissions "
-                                       "in the energy sector by 11% in 2030 is introduced, according to the unconditional NDCs of the country. "
-                                       "The renewable energy options considered to meet the target are hydro, geothermal, solar and wind. Biomass is not considered."),
+                                html.P(descriptions['current_policies_scenario']),
                                 html.H6("SDG7:"),
-                                html.P("Modified from the Current Policies scenario. Here, all SDG7 targets (along with NDC targets) are achieved and investments in "
-                                       "electricity transmission and distribution infrastructure for electrifying the remaining 2% population are allowed. "
-                                       "Energy efficiency measures in the residential and industrial sector are also allowed.")
+                                html.P(descriptions['sdg7_scenario'])
                             ]
                         ),
                         dbc.ModalFooter(
@@ -531,70 +532,80 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.H6('Total Final Energy Consumption (TFEC)'),
-                        html.P(
-                            'Select the visualization:',
-                            className="control_label",
-                        ),
-                        dcc.Dropdown(
-                            id='tfec_visualization_drop',
-                            options=[
-                                {'label': 'Total Final Energy Consumption', 'value': 'tfect_plot'},
-                                {'label': 'RE share in TFEC', 'value': 'tfec_re'},
-                                {'label': 'CO2 emissions in TFEC', 'value': 'tfec_co2'},
-                            ],
-                            value='tfect_plot',
-                            clearable = False,
-                        ),
-
-                        html.P(
-                            'Select the scenario:',
-                            className="control_label",
-                        ),
-                        dcc.Dropdown(
-                            id='tfec_scenario',
-                            clearable=False
-                        ),
-                        html.P("Filter by:", className="control_label"),
-                        dcc.Dropdown(
-                            id='tfec_type_drop',
-                            options=[{'label': 'Select...', 'value': 'Select'}],
-                            value='Select',
-                            clearable=False
-                        ),
                         html.Div(
                             [
-                                html.P("Select sector:", className="control_label"),
+                                html.P(
+                                    'Select the visualization:',
+                                    className="control_label",
+                                ),
                                 dcc.Dropdown(
-                                    id='tfec_sector',
-                                    value='All',
-                                    clearable=False,
+                                    id='tfec_visualization_drop',
+                                    options=[
+                                        {'label': 'Total Final Energy Consumption', 'value': 'tfect_plot'},
+                                        {'label': 'RE share in TFEC', 'value': 'tfec_re'},
+                                        {'label': 'CO2 emissions in TFEC', 'value': 'tfec_co2'},
+                                    ],
+                                    value='tfect_plot',
+                                    clearable = False,
+                                ),
+
+                                html.P(
+                                    'Select the scenario:',
+                                    className="control_label",
+                                ),
+                                dcc.Dropdown(
+                                    id='tfec_scenario',
+                                    clearable=False
+                                ),
+                                html.P("Filter by:", className="control_label"),
+                                dcc.Dropdown(
+                                    id='tfec_type_drop',
+                                    options=[{'label': 'Select...', 'value': 'Select'}],
+                                    value='Select',
+                                    clearable=False
+                                ),
+                                html.Div(
+                                    [
+                                        html.P("Select sector:", className="control_label"),
+                                        dcc.Dropdown(
+                                            id='tfec_sector',
+                                            value='All',
+                                            clearable=False,
+                                        ),
+                                    ],
+                                    id='tfec_sector_div',
+                                ),
+
+                                html.P(
+                                    'Select the range of years to visualize:',
+                                    className="control_label",
+                                ),
+                                dcc.RangeSlider(
+                                    id="year_slider",
+                                    min=years.min(),
+                                    max=2030,
+                                    value=[years.min(), 2030],
+                                    marks={y: y for y in range(int(years.min()), 2031, 2)},
+                                    className="dcc_control",
                                 ),
                             ],
-                            id='tfec_sector_div',
-                        ),
-
-                        html.P(
-                            'Select the range of years to visualize:',
-                            className="control_label",
-                        ),
-                        dcc.RangeSlider(
-                            id="year_slider",
-                            min=years.min(),
-                            max=2030,
-                            value=[years.min(), 2030],
-                            marks={y: y for y in range(int(years.min()), 2031, 2)},
-                            className="dcc_control",
+                            id='tfec-controls'
                         ),
 
                         html.Div(
-                            [
-
-                            ],
-                            style={"margin-top": "50px"}
+                            html.P(descriptions['tfec']),
+                            id='tfec-description',
+                            style={'display': 'none'}
                         ),
-
+                        html.Div(
+                            html.Button('Toggle description',
+                                        id='toggle-tfec',
+                                        className='toggle-button'
+                                        ),
+                            style={'height': '30px'},
+                        )
                     ],
-                    className="pretty_container four columns",
+                    className="pretty_container five columns",
                     id="scenario-options",
                 ),
 
@@ -606,7 +617,7 @@ app.layout = html.Div(
 
                     ],
                     id="tfecGraphContainer",
-                    className="pretty_container eight columns",
+                    className="pretty_container seven columns",
                 ),
             ],
             className="row flex-display",
@@ -617,90 +628,94 @@ app.layout = html.Div(
             [
                 html.Div(
                     [
-                        html.Div(
-                            [
-                                dcc.Graph(
-                                    id='supply_graph',
-                                ),
-                            ],
-                            className="pretty_container"
+                        dcc.Graph(
+                            id='supply_graph',
                         ),
                     ],
                     id="supplyGraphContainer",
-                    className="eight columns",
+                    className="pretty_container seven columns",
                 ),
 
                 html.Div(
                     [
                         html.H6('Electricity supply and demand'),
-                        html.P(
-                            'Select the visualization:',
-                            className="control_label",
-                        ),
-                        dcc.Dropdown(
-                            id='electricity_visualization_drop',
-                            options=[
-                                {'label': 'Electricity demand', 'value': 'el_demand'},
-                                {'label': 'Electricity supply', 'value': 'el_prod'},
-                                {'label': 'CO2 emissions', 'value': 'el_co2'},
-                                {'label': 'Annual investment required', 'value': 'el_inv'},
-                                {'label': 'Annual discounted cost', 'value': 'el_cost'},
-                            ],
-                            value='el_demand',
-                            clearable = False,
-                        ),
-
-                        html.P(
-                            'Select the scenario:',
-                            className="control_label",
-                        ),
-                        dcc.Dropdown(
-                            id='electricity_scenario',
-                            options=[{'label': 'All', 'value': 'All'}]+[{'label': i, 'value': i} for i in scenarios],
-                            value='All',
-                            clearable=False
-                        ),
-                        html.P("Filter by:", className="control_label"),
-                        dcc.Dropdown(
-                            id='electricity_type_drop',
-                            options=[{'label': 'Select...', 'value': 'Select'}],
-                            value='Select',
-                            clearable=False
-                        ),
                         html.Div(
                             [
-                                html.P("Select sector:", className="control_label"),
+                                html.P(
+                                    'Select the visualization:',
+                                    className="control_label",
+                                ),
                                 dcc.Dropdown(
-                                    id='electricity_sector',
+                                    id='electricity_visualization_drop',
+                                    options=[
+                                        {'label': 'Electricity demand', 'value': 'el_demand'},
+                                        {'label': 'Electricity supply', 'value': 'el_prod'},
+                                        {'label': 'CO2 emissions', 'value': 'el_co2'},
+                                        {'label': 'Annual investment required', 'value': 'el_inv'},
+                                        {'label': 'Annual discounted cost', 'value': 'el_cost'},
+                                    ],
+                                    value='el_demand',
+                                    clearable = False,
+                                ),
+
+                                html.P(
+                                    'Select the scenario:',
+                                    className="control_label",
+                                ),
+                                dcc.Dropdown(
+                                    id='electricity_scenario',
+                                    options=[{'label': 'All', 'value': 'All'}]+[{'label': i, 'value': i} for i in scenarios],
                                     value='All',
-                                    clearable=False,
+                                    clearable=False
+                                ),
+                                html.P("Filter by:", className="control_label"),
+                                dcc.Dropdown(
+                                    id='electricity_type_drop',
+                                    options=[{'label': 'Select...', 'value': 'Select'}],
+                                    value='Select',
+                                    clearable=False
+                                ),
+                                html.Div(
+                                    [
+                                        html.P("Select sector:", className="control_label"),
+                                        dcc.Dropdown(
+                                            id='electricity_sector',
+                                            value='All',
+                                            clearable=False,
+                                        ),
+                                    ],
+                                    id='electricity_sector_div',
+                                ),
+
+                                html.P(
+                                    'Select the range of years to visualize:',
+                                    className="control_label",
+                                ),
+                                dcc.RangeSlider(
+                                    id="year_slider_supply",
+                                    min=years.min(),
+                                    max=2030,
+                                    value=[years.min(), 2030],
+                                    marks={y: y for y in range(int(years.min()), 2031, 2)},
+                                    className="dcc_control",
                                 ),
                             ],
-                            id='electricity_sector_div',
+                            id='elec-controls',
                         ),
-
-                        html.P(
-                            'Select the range of years to visualize:',
-                            className="control_label",
-                        ),
-                        dcc.RangeSlider(
-                            id="year_slider_supply",
-                            min=years.min(),
-                            max=2030,
-                            value=[years.min(), 2030],
-                            marks={y: y for y in range(int(years.min()), 2031, 2)},
-                            className="dcc_control",
-                        ),
-
                         html.Div(
-                            [
-
-                            ],
-                            style={"margin-top": "50px"}
+                            html.P(descriptions['electricity']),
+                            id='elec-description',
+                            style={'display': 'none'}
                         ),
-
+                        html.Div(
+                            html.Button('Toggle description',
+                                        id='toggle-elec',
+                                        className='toggle-button'
+                                        ),
+                            style={'height': '30px'},
+                        )
                     ],
-                    className="pretty_container four columns",
+                    className="pretty_container five columns",
                     id="scenario-options-supply",
                 ),
             ],
@@ -712,6 +727,16 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.H6('SDG7.1.1 - Access to electricity'),
+                        html.Div(
+                            html.P(descriptions['sdg7.1.1']),
+                            id='sdg7.1.1-description',
+                        ),
+                    ],
+                    className="pretty_container five columns",
+                ),
+                html.Div(
+                    [
+                        # html.H6('SDG7.1.1 - Access to electricity'),
                         dcc.Graph(
                             id='el_access_graph',
                         ),
@@ -729,12 +754,17 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="el-access-div",
-                    className="pretty_container six columns",
+                    className="pretty_container seven columns",
                 ),
+            ],
+            id="el-access-div",
+            className="row flex-display",
+        ),
+
+        html.Div(
+            [
                 html.Div(
                     [
-                        html.H6('SDG7.1.2 - Access to clean cooking fuel'),
                         dcc.Graph(
                             id='cooking_graph',
                         ),
@@ -752,20 +782,39 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="cooking-div",
-                    className="pretty_container six columns",
+                    className="pretty_container seven columns",
+                ),
+                html.Div(
+                    [
+                        html.H6('SDG7.1.2 - Access to clean cooking fuel'),
+                        html.Div(
+                            html.P(descriptions['sdg7.1.2']),
+                            id='sdg7.1.2-description',
+                        ),
+                    ],
+                    className="pretty_container five columns",
                 ),
             ],
+            id="cooking-div",
             className="row flex-display",
         ),
+
         html.Div(
             [
                 html.Div(
                     [
+                        html.H6('SDG7.2 - Renewable Energy'),
+                        html.Div(
+                            html.P(descriptions['sdg7.2']),
+                            id='sdg7.2-description',
+                        ),
+                    ],
+                    className="pretty_container four columns",
+                ),
+                html.Div(
+                    [
                         html.Div(
                             [
-                                html.H6('SDG7.2 - Renewable Energy'),
-
                                 html.Div(
                                     [
                                         html.Div(
@@ -830,13 +879,17 @@ app.layout = html.Div(
                             className="pretty_container",
                         ),
                     ],
-                    id="re-div",
                     className="eight columns",
                 ),
+            ],
+            id="re-div",
+            className="row flex-display",
+        ),
 
+        html.Div(
+            [
                 html.Div(
                     [
-                        html.H6('SDG7.3 - Energy Efficiency'),
                         dcc.Graph(
                             id='efficiency_graph',
                         ),
@@ -854,11 +907,21 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="efficiency-div",
+                    className="pretty_container seven columns",
+                ),
+                html.Div(
+                    [
+                        html.H6('SDG7.3 - Energy Efficiency'),
+                        html.Div(
+                            html.P(descriptions['sdg7.3']),
+                            id='sdg7.3-description',
+                        ),
+                    ],
                     className="pretty_container five columns",
                 ),
 
             ],
+            id="efficiency-div",
             className="row flex-display",
         ),
     ],
@@ -1558,6 +1621,36 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+
+@app.callback(
+    [
+        Output("tfec-description", "style"),
+        Output("tfec-controls", "style"),
+    ],
+    [Input("toggle-tfec", "n_clicks")],
+)
+def toggle_description(n):
+    try:
+        if n % 2 != 0:
+            return {'display': 'block'}, {'display': 'none'}
+    except:
+        pass
+    return {'display': 'none'}, {'display': 'block'}
+
+@app.callback(
+    [
+        Output("elec-description", "style"),
+        Output("elec-controls", "style"),
+    ],
+    [Input("toggle-elec", "n_clicks")],
+)
+def toggle_description(n):
+    try:
+        if n % 2 != 0:
+            return {'display': 'block'}, {'display': 'none'}
+    except:
+        pass
+    return {'display': 'none'}, {'display': 'block'}
 
 if __name__ == '__main__':
     app.run_server(debug=False)
