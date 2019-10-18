@@ -605,7 +605,7 @@ app.layout = html.Div(
                             style={'height': '30px'},
                         )
                     ],
-                    className="pretty_container four columns",
+                    className="pretty_container five columns",
                     id="scenario-options",
                 ),
 
@@ -617,7 +617,7 @@ app.layout = html.Div(
 
                     ],
                     id="tfecGraphContainer",
-                    className="pretty_container eight columns",
+                    className="pretty_container seven columns",
                 ),
             ],
             className="row flex-display",
@@ -633,7 +633,7 @@ app.layout = html.Div(
                         ),
                     ],
                     id="supplyGraphContainer",
-                    className="pretty_container eight columns",
+                    className="pretty_container seven columns",
                 ),
 
                 html.Div(
@@ -715,7 +715,7 @@ app.layout = html.Div(
                             style={'height': '30px'},
                         )
                     ],
-                    className="pretty_container four columns",
+                    className="pretty_container five columns",
                     id="scenario-options-supply",
                 ),
             ],
@@ -727,6 +727,16 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.H6('SDG7.1.1 - Access to electricity'),
+                        html.Div(
+                            html.P(descriptions['sdg7.1.1']),
+                            id='sdg7.1.1-description',
+                        ),
+                    ],
+                    className="pretty_container five columns",
+                ),
+                html.Div(
+                    [
+                        # html.H6('SDG7.1.1 - Access to electricity'),
                         dcc.Graph(
                             id='el_access_graph',
                         ),
@@ -744,12 +754,17 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="el-access-div",
-                    className="pretty_container six columns",
+                    className="pretty_container seven columns",
                 ),
+            ],
+            id="el-access-div",
+            className="row flex-display",
+        ),
+
+        html.Div(
+            [
                 html.Div(
                     [
-                        html.H6('SDG7.1.2 - Access to clean cooking fuel'),
                         dcc.Graph(
                             id='cooking_graph',
                         ),
@@ -767,20 +782,39 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="cooking-div",
-                    className="pretty_container six columns",
+                    className="pretty_container seven columns",
+                ),
+                html.Div(
+                    [
+                        html.H6('SDG7.1.2 - Access to clean cooking fuel'),
+                        html.Div(
+                            html.P(descriptions['sdg7.1.2']),
+                            id='sdg7.1.2-description',
+                        ),
+                    ],
+                    className="pretty_container five columns",
                 ),
             ],
+            id="cooking-div",
             className="row flex-display",
         ),
+
         html.Div(
             [
                 html.Div(
                     [
+                        html.H6('SDG7.2 - Renewable Energy'),
+                        html.Div(
+                            html.P(descriptions['sdg7.2']),
+                            id='sdg7.2-description',
+                        ),
+                    ],
+                    className="pretty_container four columns",
+                ),
+                html.Div(
+                    [
                         html.Div(
                             [
-                                html.H6('SDG7.2 - Renewable Energy'),
-
                                 html.Div(
                                     [
                                         html.Div(
@@ -845,13 +879,17 @@ app.layout = html.Div(
                             className="pretty_container",
                         ),
                     ],
-                    id="re-div",
                     className="eight columns",
                 ),
+            ],
+            id="re-div",
+            className="row flex-display",
+        ),
 
+        html.Div(
+            [
                 html.Div(
                     [
-                        html.H6('SDG7.3 - Energy Efficiency'),
                         dcc.Graph(
                             id='efficiency_graph',
                         ),
@@ -869,11 +907,21 @@ app.layout = html.Div(
                         ),
                         html.Br()
                     ],
-                    id="efficiency-div",
+                    className="pretty_container seven columns",
+                ),
+                html.Div(
+                    [
+                        html.H6('SDG7.3 - Energy Efficiency'),
+                        html.Div(
+                            html.P(descriptions['sdg7.3']),
+                            id='sdg7.3-description',
+                        ),
+                    ],
                     className="pretty_container five columns",
                 ),
 
             ],
+            id="efficiency-div",
             className="row flex-display",
         ),
     ],
@@ -1582,8 +1630,11 @@ def toggle_collapse(n, is_open):
     [Input("toggle-tfec", "n_clicks")],
 )
 def toggle_description(n):
-    if n % 2 != 0:
-        return {'display': 'block'}, {'display': 'none'}
+    try:
+        if n % 2 != 0:
+            return {'display': 'block'}, {'display': 'none'}
+    except:
+        pass
     return {'display': 'none'}, {'display': 'block'}
 
 @app.callback(
@@ -1594,8 +1645,11 @@ def toggle_description(n):
     [Input("toggle-elec", "n_clicks")],
 )
 def toggle_description(n):
-    if n % 2 != 0:
-        return {'display': 'block'}, {'display': 'none'}
+    try:
+        if n % 2 != 0:
+            return {'display': 'block'}, {'display': 'none'}
+    except:
+        pass
     return {'display': 'none'}, {'display': 'block'}
 
 if __name__ == '__main__':
