@@ -23,6 +23,8 @@ descriptions = {'bau_scenario': open(os.path.join(folder, 'Descriptions', 'bau_s
                 'sdg7.3': open(os.path.join(folder, 'Descriptions', 'sdg7.3.txt')).read(),
                 'tfec': open(os.path.join(folder, 'Descriptions', 'tfec.txt')).read(),
                 }
+economic_parameters = pd.read_excel(os.path.join(folder, 'economic_parameters.xlsx'))
+economic_parameters = economic_parameters.set_index('scenario').to_dict()
 input_tfec = pd.read_excel(os.path.join(folder, 'TFEC.xlsx'))
 input_production = pd.read_excel(os.path.join(folder, 'Electricity_generation.xlsx'))
 input_tfec_re = pd.read_excel(os.path.join(folder, 'TFEC_renewables.xlsx'))
@@ -485,6 +487,7 @@ app.layout = html.Div(
                         html.P('Total Final Energy Consumption', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='tfec-switch', on=True)
                     ],
+                    id='tfec-mini',
                     className="mini_container",
                 ),
                 html.Div(
@@ -492,6 +495,7 @@ app.layout = html.Div(
                         html.P('Electricity supply and demand', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='el-switch', on=False)
                     ],
+                    id='el-mini',
                     className="mini_container",
                 ),
                 html.Div(
@@ -499,6 +503,7 @@ app.layout = html.Div(
                         html.P('SDG7.1.1 - Access to electricity', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='el-access-switch', on=False)
                     ],
+                    id='el-access-mini',
                     className="mini_container",
                 ),
                 html.Div(
@@ -506,6 +511,7 @@ app.layout = html.Div(
                         html.P('SDG7.1.2 - Access to clean cooking fuel', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='clean-cooking-switch', on=False)
                     ],
+                    id='cooking-mini',
                     className="mini_container",
                 ),
                 html.Div(
@@ -513,6 +519,7 @@ app.layout = html.Div(
                         html.P('SDG7.2 - Renewable energy', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='re-switch', on=False)
                     ],
+                    id='re-mini',
                     className="mini_container",
                 ),
                 html.Div(
@@ -520,11 +527,12 @@ app.layout = html.Div(
                         html.P('SDG7.3 - Energy efficiency', style={'text-align': 'center', 'font-size': '12px'}),
                         daq.BooleanSwitch(id='eff-switch', on=False)
                     ],
+                    id='eff-mini',
                     className="mini_container",
                 ),
             ],
             className="row flex-display",
-            style={'margin': 'auto', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0'}
+            # style={'margin': 'auto', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0'}
         ),
 
         html.Div(
@@ -546,7 +554,7 @@ app.layout = html.Div(
                                         {'label': 'CO2 emissions in TFEC', 'value': 'tfec_co2'},
                                     ],
                                     value='tfect_plot',
-                                    clearable = False,
+                                    clearable=False,
                                 ),
 
                                 html.P(
@@ -555,6 +563,7 @@ app.layout = html.Div(
                                 ),
                                 dcc.Dropdown(
                                     id='tfec_scenario',
+                                    value='All',
                                     clearable=False
                                 ),
                                 html.P("Filter by:", className="control_label"),
@@ -611,13 +620,35 @@ app.layout = html.Div(
 
                 html.Div(
                     [
-                        dcc.Graph(
-                            id='tfec_graph',
+                        html.Div(
+                            [
+                                html.Div(
+                                    [html.H6("NPV of total system cost", style={'text-align': 'center'}),
+                                     html.P(style={'text-align': 'center'}, id="npvText")],
+                                    id="npv",
+                                    className="mini_container",
+                                ),
+                                html.Div(
+                                    [html.H6("Savings in subsidies", style={'text-align': 'center'}),
+                                     html.P(style={'text-align': 'center'}, id="savingsText")],
+                                    id="savings",
+                                    className="mini_container",
+                                ),
+                            ],
+                            id="info-container",
+                            className="row container-display",
                         ),
-
+                        html.Div(
+                            [
+                                dcc.Graph(
+                                    id='tfec_graph',
+                                ),
+                            ],
+                            id="tfecGraphContainer",
+                            className="pretty_container",
+                        ),
                     ],
-                    id="tfecGraphContainer",
-                    className="pretty_container seven columns",
+                    className="seven columns",
                 ),
             ],
             className="row flex-display",
@@ -809,7 +840,7 @@ app.layout = html.Div(
                             id='sdg7.2-description',
                         ),
                     ],
-                    className="pretty_container four columns",
+                    className="pretty_container five columns",
                 ),
                 html.Div(
                     [
@@ -855,17 +886,9 @@ app.layout = html.Div(
                                             className="container"
                                         ),
                                     ],
-                                    className="row flex-display",
-                                    style={'margin': 'auto', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0'}
+                                    className="row container-display",
+                                    #style={'margin': 'auto', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0'}
                                 ),
-
-                                html.Div(
-                                    [
-
-                                    ],
-                                    style={"margin-top": "15px"}
-                                ),
-
                             ],
                             className="pretty_container",
                             id="scenario-options-re",
@@ -879,11 +902,11 @@ app.layout = html.Div(
                             className="pretty_container",
                         ),
                     ],
-                    className="eight columns",
+                    className="seven columns",
                 ),
             ],
-            id="re-div",
             className="row flex-display",
+            id="re-div",
         ),
 
         html.Div(
@@ -968,7 +991,11 @@ def update_elec_value(value):
     return options
 
 @app.callback(
-    Output('tfec_type_drop', 'options'),
+    [
+        Output('tfec_type_drop', 'options'),
+        Output('npvText', 'children'),
+        Output('savingsText', 'children'),
+    ],
     [
         Input('tfec_scenario', 'value'),
     ],
@@ -978,13 +1005,17 @@ def update_elec_type(scenario):
         options = [
             {'label': 'Select...', 'value': 'Select', 'disabled': True},
         ]
+        npv = '-'
+        savings = '-'
     else:
         options = [
             {'label': 'Sector', 'value': 'Sector'},
             {'label': 'Fuel', 'value': 'Fuel'},
             {'label': 'Select...', 'value': 'Select', 'disabled': True},
         ]
-    return options
+        npv = '{} M$'.format(economic_parameters['npv'][scenario])
+        savings = '{} M$'.format(economic_parameters['savings'][scenario])
+    return options, npv, savings
 
 @app.callback(
     Output('tfec_type_drop', 'disabled'),

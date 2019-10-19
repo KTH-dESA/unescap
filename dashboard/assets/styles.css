@@ -111,23 +111,39 @@ body {
   flex-direction: column;
 }
 
-#wells {
+#el-mini {
+  flex: 0.8;
+}
+
+#tfec-mini {
+  flex: 0.8;
+}
+
+#el-access-mini {
+  flex: 0.8;
+}
+
+#cooking-mini {
   flex: 1;
 }
 
-#gas {
-  flex: 1;
+#re-mini {
+  flex: 0.8;
+}
+
+#eff-mini {
+  flex: 0.8;
 }
 
 #aggregate_data {
   align-items: center;
 }
 
-#oil {
+#savings {
   flex: 1;
 }
 
-#water {
+#npv {
   flex: 1;
 }
 
