@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import os.path
 import copy
+from six.moves.urllib.parse import quote
 
 scenarios = ['BAU', 'Current Policies', 'SDG7']
 
@@ -222,7 +223,7 @@ def tfec_re_share(scenario, year_slider, layout_tfec):
     layout_tfec["barmode"] = 'stack'
     layout_tfec["title"] = "Share of Renewables in TFEC"
 
-    return data, layout_tfec
+    return data, layout_tfec, dff
 
 def get_general_graph(df, year_slider, variable, layout, title, units = None):
     dff = df.loc[(df['y'] >= year_slider[0]) & (df['y'] <= year_slider[1])]
@@ -244,7 +245,7 @@ def get_general_graph(df, year_slider, variable, layout, title, units = None):
 
     layout["title"] = title
 
-    return data, layout
+    return data, layout, dff
 
 app = dash.Dash(__name__)
 
@@ -607,12 +608,23 @@ app.layout = html.Div(
                             style={'display': 'none'}
                         ),
                         html.Div(
-                            html.Button('Toggle description',
-                                        id='toggle-tfec',
-                                        className='toggle-button'
-                                        ),
+                            [
+                                html.Button(
+                                    'Toggle description',
+                                    id='toggle-tfec',
+                                    className='toggle-button'
+                                ),
+                                html.A(
+                                    'Download Data',
+                                    id='download-link-tfec',
+                                    download="rawdata.csv",
+                                    href="",
+                                    target="_blank",
+                                    className='download-link'
+                                ),
+                            ],
                             style={'height': '30px'},
-                        )
+                        ),
                     ],
                     className="pretty_container five columns",
                     id="scenario-options",
@@ -739,10 +751,20 @@ app.layout = html.Div(
                             style={'display': 'none'}
                         ),
                         html.Div(
-                            html.Button('Toggle description',
-                                        id='toggle-elec',
-                                        className='toggle-button'
-                                        ),
+                            [
+                                html.Button('Toggle description',
+                                            id='toggle-elec',
+                                            className='toggle-button'
+                                            ),
+                                html.A(
+                                    'Download Data',
+                                    id='download-link-el',
+                                    download="rawdata.csv",
+                                    href="",
+                                    target="_blank",
+                                    className='download-link'
+                                ),
+                            ],
                             style={'height': '30px'},
                         )
                     ],
@@ -761,6 +783,14 @@ app.layout = html.Div(
                         html.Div(
                             html.P(descriptions['sdg7.1.1']),
                             id='sdg7.1.1-description',
+                        ),
+                        html.A(
+                            'Download Data',
+                            id='download-link-el-access',
+                            download="rawdata.csv",
+                            href="",
+                            target="_blank",
+                            className='download-link'
                         ),
                     ],
                     className="pretty_container five columns",
@@ -822,6 +852,14 @@ app.layout = html.Div(
                             html.P(descriptions['sdg7.1.2']),
                             id='sdg7.1.2-description',
                         ),
+                        html.A(
+                            'Download Data',
+                            id='download-link-cooking',
+                            download="rawdata.csv",
+                            href="",
+                            target="_blank",
+                            className='download-link'
+                        ),
                     ],
                     className="pretty_container five columns",
                 ),
@@ -838,6 +876,14 @@ app.layout = html.Div(
                         html.Div(
                             html.P(descriptions['sdg7.2']),
                             id='sdg7.2-description',
+                        ),
+                        html.A(
+                            'Download Data',
+                            id='download-link-re',
+                            download="rawdata.csv",
+                            href="",
+                            target="_blank",
+                            className='download-link'
                         ),
                     ],
                     className="pretty_container five columns",
@@ -938,6 +984,14 @@ app.layout = html.Div(
                         html.Div(
                             html.P(descriptions['sdg7.3']),
                             id='sdg7.3-description',
+                        ),
+                        html.A(
+                            'Download Data',
+                            id='download-link-eff',
+                            download="rawdata.csv",
+                            href="",
+                            target="_blank",
+                            className='download-link'
                         ),
                     ],
                     className="pretty_container five columns",
@@ -1160,7 +1214,10 @@ def set_state(value, scenario, year_slider):
     return options
 
 @app.callback(
-    Output('tfec_graph', 'figure'),
+    [
+        Output('tfec_graph', 'figure'),
+        Output('download-link-tfec', 'href')
+    ],
     [
         Input('tfec_scenario', 'value'),
         Input('year_slider', 'value'),
@@ -1175,7 +1232,7 @@ def update_tfec(scenario, year_slider, visualization, type, units, sector):
     data = ''
     if visualization == 'tfect_plot':
         if scenario == 'All':
-            data, layout_tfec = get_general_graph(df_tfec, year_slider, tfec_variable, layout,
+            data, layout_tfec, dff = get_general_graph(df_tfec, year_slider, tfec_variable, layout,
                                                   "Total Final Energy Consumption ({})".format(units), units)
         elif scenario != 'Select':
             dff = df_tfec.loc[
@@ -1216,17 +1273,24 @@ def update_tfec(scenario, year_slider, visualization, type, units, sector):
 
     elif visualization == 'tfec_co2':
         if scenario == 'All':
-            data, layout_tfec = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
+            data, layout_tfec, dff = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
                                                     "Total CO2 Emissions (Mton)")
 
     elif visualization == 'tfec_re':
-        data, layout_tfec = tfec_re_share(scenario, year_slider, layout_tfec)
+        data, layout_tfec, dff = tfec_re_share(scenario, year_slider, layout_tfec)
 
     figure = dict(data=data, layout=layout_tfec)
-    return figure
+
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+
+    return figure, csv_string
 
 @app.callback(
-    Output('supply_graph', 'figure'),
+    [
+        Output('supply_graph', 'figure'),
+        Output('download-link-el', 'href'),
+    ],
     [
         Input('electricity_scenario', 'value'),
         Input('year_slider_supply', 'value'),
@@ -1241,7 +1305,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
     data = ''
     if visualization == 'el_demand':
         if scenario == 'All':
-            data, layout_supply = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
+            data, layout_supply, dff = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
                                                   "Electricity demand ({})".format(units), units)
         elif scenario != 'Select':
             dff = df_elec_demand.loc[
@@ -1282,7 +1346,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
 
     elif visualization == 'el_prod':
         if scenario == 'All':
-            data, layout_supply = get_general_graph(df_supply, year_slider, supply_variable, layout,
+            data, layout_supply, dff = get_general_graph(df_supply, year_slider, supply_variable, layout,
                                                   "Electricity supply ({})".format(units), units)
         elif (sector != 'Select') & (type != 'Select'):
             dff = df_supply.loc[
@@ -1307,7 +1371,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
     elif visualization == 'el_co2':
         dff = df_emissions.loc[df_emissions['t'].isin(input_production['OSEMOSYS'])]
         if scenario == 'All':
-            data, layout_supply = get_general_graph(dff, year_slider, emissions_variable, layout,
+            data, layout_supply, dff = get_general_graph(dff, year_slider, emissions_variable, layout,
                                                   "Total CO2 Emissions (Mton)")
 
         elif (sector != 'Select') & (type != 'Select'):
@@ -1332,7 +1396,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
 
     elif visualization == 'el_inv':
         if scenario == 'All':
-            data, layout_supply = get_general_graph(df_investment, year_slider, investment_variable, layout,
+            data, layout_supply, dff = get_general_graph(df_investment, year_slider, investment_variable, layout,
                                                   "Capital Investment (M$)")
         else:
             dff = df_investment.loc[
@@ -1374,10 +1438,17 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
         layout_supply["title"] = "Total annual discounted cost (M$)"
 
     figure = dict(data=data, layout=layout_supply)
-    return figure
+
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+
+    return figure, csv_string
 
 @app.callback(
-    Output('el_access_graph', 'figure'),
+    [
+        Output('el_access_graph', 'figure'),
+        Output('download-link-el-access', 'href')
+    ],
     [
         Input('year_slider_el_access', 'value'),
         Input('electricity_units', 'value'),
@@ -1406,10 +1477,15 @@ def el_access_graph(year_slider, units):
     layout_access["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_access)
-    return figure
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+    return figure, csv_string
 
 @app.callback(
-    Output('cooking_graph', 'figure'),
+    [
+        Output('cooking_graph', 'figure'),
+        Output('download-link-cooking', 'href')
+    ],
     [
         Input('year_slider_cooking', 'value'),
         Input('energy_units', 'value'),
@@ -1438,10 +1514,15 @@ def cooking_graph(year_slider, units):
     layout_cooking["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_cooking)
-    return figure
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+    return figure, csv_string
 
 @app.callback(
-    Output('efficiency_graph', 'figure'),
+    [
+        Output('efficiency_graph', 'figure'),
+        Output('download-link-eff', 'href')
+    ],
     [
         Input('year_slider_efficiency', 'value'),
         Input('energy_units', 'value'),
@@ -1471,10 +1552,15 @@ def efficiency_graph(year_slider, units):
     layout_efficiency["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_efficiency)
-    return figure
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+    return figure, csv_string
 
 @app.callback(
-    Output('re_graph', 'figure'),
+    [
+        Output('re_graph', 'figure'),
+        Output('download-link-re', 'href')
+    ],
     [
         Input('year_slider_re', 'value'),
         Input('re_drop', 'value'),
@@ -1504,7 +1590,7 @@ def re_graph(year_slider, visualization):
         layout_re["barmode"] = 'stack'
 
     elif visualization == 're_tfec':
-        data, layout_re = tfec_re_share('SDG7', year_slider, layout_re)
+        data, layout_re, dff = tfec_re_share('SDG7', year_slider, layout_re)
 
     elif visualization == 're_energy_sector':
         dff = df_supply.loc[
@@ -1549,7 +1635,9 @@ def re_graph(year_slider, visualization):
         layout_re["barmode"] = 'stack'
 
     figure = dict(data=data, layout=layout_re)
-    return figure
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+    return figure, csv_string
 
 @app.callback(
     Output('tfec-div', 'style'),

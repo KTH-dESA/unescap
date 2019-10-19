@@ -167,3 +167,9 @@ body {
 	left:    10px;
 	bottom:   10px;
 }
+
+.download-link {
+	position: absolute;
+	right:    20px;
+	bottom:   10px;
+}
