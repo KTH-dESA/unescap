@@ -1,3 +1,4 @@
-Modified from the Current Policies scenario. Here, all SDG7 targets (along with NDC targets) are achieved and investments in 
-electricity transmission and distribution infrastructure for electrifying the remaining 2% population are allowed. 
-Energy efficiency measures in the residential and industrial sector are also allowed.
+Modified from the Current Policies scenario. Furthermore, all SDG7 targets are added: 
+SDG7.1 targets of universal electrification, SDG7.2 targets of access to clean cooking (phase out of biomass and kerosene stoves by 2030) 
+and SDG7.3 targets of energy efficiency (reduction of energy intensity in residential and commercial electricity uses 
++ deeper fuel shift allowed in transportation + deeper reduction of coal use in industry).
