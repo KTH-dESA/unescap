@@ -1272,7 +1272,6 @@ def update_tfec(scenario, year_slider, visualization, type, units, sector):
                 layout_tfec["barmode"] = 'stack'
 
     elif visualization == 'tfec_co2':
-        if scenario == 'All':
             data, layout_tfec, dff = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
                                                     "Total CO2 Emissions (Mton)")
 
