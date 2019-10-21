@@ -121,7 +121,7 @@ for scenario in scenarios:
     df_elec_access_temp = df_elec_access_temp[df_elec_access_temp['t'].isin(input_elec_access['OSEMOSYS'])]
     df_elec_access_temp['Scenario'] = scenario
     df_elec_access_temp = df_elec_access_temp.reset_index(drop=True)
-    df_elec_access_temp['VISUALIZATION'] = df_elec_access_temp['t'].map(input_elec_access.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_elec_access_temp['Type'] = df_elec_access_temp['t'].map(input_elec_access.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_elec_access = df_elec_access.append(df_elec_access_temp, ignore_index=True, sort=False)
 
     ##Clean cooking access##
@@ -131,7 +131,7 @@ for scenario in scenarios:
     df_cooking_temp = df_cooking_temp[df_cooking_temp['t'].isin(input_cooking['OSEMOSYS'])]
     df_cooking_temp['Scenario'] = scenario
     df_cooking_temp = df_cooking_temp.reset_index(drop=True)
-    df_cooking_temp['VISUALIZATION'] = df_cooking_temp['t'].map(input_cooking.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_cooking_temp['Type'] = df_cooking_temp['t'].map(input_cooking.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_cooking = df_cooking.append(df_cooking_temp, ignore_index=True, sort=False)
 
     ##Energy efficiency##
@@ -141,7 +141,7 @@ for scenario in scenarios:
     df_efficency_temp = df_efficency_temp.loc[df_efficency_temp['t'].isin(input_efficiency['OSEMOSYS'])]
     df_efficency_temp['Scenario'] = scenario
     df_efficency_temp = df_efficency_temp.reset_index(drop=True)
-    df_efficency_temp['VISUALIZATION'] = df_efficency_temp['t'].map(input_efficiency.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_efficency_temp['Type'] = df_efficency_temp['t'].map(input_efficiency.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_efficiency = df_efficiency.append(df_efficency_temp, ignore_index=True, sort=False)
 
     ##RE capacity##
@@ -151,7 +151,7 @@ for scenario in scenarios:
     df_re_capacity_temp = df_re_capacity_temp.loc[df_re_capacity_temp['t'].isin(input_re_capacity['OSEMOSYS'])]
     df_re_capacity_temp['Scenario'] = scenario
     df_re_capacity_temp = df_re_capacity_temp.reset_index(drop=True)
-    df_re_capacity_temp['VISUALIZATION'] = df_re_capacity_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_re_capacity_temp['Type'] = df_re_capacity_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_re_capacity = df_re_capacity.append(df_re_capacity_temp, ignore_index=True, sort=False)
 
     ##Investment##
@@ -161,7 +161,7 @@ for scenario in scenarios:
     df_investment_temp = df_investment_temp.loc[df_investment_temp['t'].isin(input_production['OSEMOSYS'])]
     df_investment_temp['Scenario'] = scenario
     df_investment_temp = df_investment_temp.reset_index(drop=True)
-    df_investment_temp['VISUALIZATION'] = df_investment_temp['t'].map(input_production.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_investment_temp['Source'] = df_investment_temp['t'].map(input_production.set_index('OSEMOSYS')['Source'].T.to_dict())
     df_investment = df_investment.append(df_investment_temp, ignore_index=True, sort=False)
 
     ##RE Investment##
@@ -171,7 +171,7 @@ for scenario in scenarios:
     df_re_investment_temp = df_re_investment_temp.loc[df_re_investment_temp['t'].isin(input_re_capacity['OSEMOSYS'])]
     df_re_investment_temp['Scenario'] = scenario
     df_re_investment_temp = df_re_investment_temp.reset_index(drop=True)
-    df_re_investment_temp['VISUALIZATION'] = df_re_investment_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['VISUALIZATION'].T.to_dict())
+    df_re_investment_temp['Type'] = df_re_investment_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_re_investment = df_re_investment.append(df_re_investment_temp, ignore_index=True, sort=False)
 
     ##Generation cost##
@@ -1405,14 +1405,14 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
             data = [
                 dict(
                     type="bar",
-                    x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-                    y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
+                    x=dff.loc[dff['Source'] == tech].groupby('y').sum().index,
+                    y=dff.loc[dff['Source'] == tech].groupby('y').sum()[investment_variable],
                     name=tech,
                     hovertemplate=hover_template,
                     marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
                 )
 
-                for tech in input_production['VISUALIZATION'].unique()
+                for tech in input_production['Source'].unique()
             ]
 
             layout_supply["title"] = "Capital Investment (M$)"
@@ -1463,14 +1463,14 @@ def el_access_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[elec_access_variable],
+            x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['Type'] == tech].groupby('y').sum()[elec_access_variable],
             name=tech,
             hovertemplate=hover_template,
             marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
-        for tech in input_elec_access['VISUALIZATION'].unique()
+        for tech in input_elec_access['Type'].unique()
     ]
 
     layout_access["title"] = "Additional electricity needed for universal access ({})".format(units)
@@ -1500,14 +1500,14 @@ def cooking_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[cooking_variable],
+            x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['Type'] == tech].groupby('y').sum()[cooking_variable],
             name=tech,
             hovertemplate=hover_template,
             marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
-        for tech in input_cooking['VISUALIZATION'].unique()
+        for tech in input_cooking['Type'].unique()
     ]
 
     layout_cooking["title"] = "Additional energy needed for universal access<br>to clean cooking fuels ({})".format(units)
@@ -1538,14 +1538,14 @@ def efficiency_graph(year_slider, units):
     data = [
         dict(
             type="bar",
-            x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-            y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[efficiency_variable],
+            x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
+            y=dff.loc[dff['Type'] == tech].groupby('y').sum()[efficiency_variable],
             name=tech,
             hovertemplate=hover_template,
             marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
         )
 
-        for tech in input_efficiency['VISUALIZATION'].unique()
+        for tech in input_efficiency['Type'].unique()
     ]
 
     layout_efficiency["title"] = "Reduction in energy consumption needed<br>to achieve energy efficiency target ({})".format(units)
@@ -1576,14 +1576,14 @@ def re_graph(year_slider, visualization):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-                y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[re_capacity_variable],
+                x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
+                y=dff.loc[dff['Type'] == tech].groupby('y').sum()[re_capacity_variable],
                 name=tech,
                 hovertemplate=hover_template,
                 marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
 
-            for tech in input_re_capacity['VISUALIZATION'].unique()
+            for tech in input_re_capacity['Type'].unique()
         ]
 
         layout_re["title"] = "Optimal capacity to achieve RE target (GW)"
@@ -1621,14 +1621,14 @@ def re_graph(year_slider, visualization):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum().index,
-                y=dff.loc[dff['VISUALIZATION'] == tech].groupby('y').sum()[investment_variable],
+                x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
+                y=dff.loc[dff['Type'] == tech].groupby('y').sum()[investment_variable],
                 name=tech,
                 hovertemplate=hover_template,
                 marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
 
-            for tech in input_re_capacity['VISUALIZATION'].unique()
+            for tech in input_re_capacity['Type'].unique()
         ]
 
         layout_re["title"] = "Capital Investment to achieve RE target (M$)"
