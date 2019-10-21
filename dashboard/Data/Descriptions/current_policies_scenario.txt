@@ -1,4 +1,6 @@
 Modified from the BAU scenario. All base assumptions as in this scenario. 
-In addition, a target of minimum renewable share in primary energy supply compatible with reduction of CO2 emissions 
-in the energy sector by 11% in 2030 is introduced, according to the unconditional NDCs of the country. 
-The renewable energy options considered to meet the target are hydro, geothermal, solar and wind. Biomass is not considered.
+In addition, a target of minimum renewable energy share in the total primary energy supply is added, 
+sufficient to allow for 11% decrease of CO2 emissions by the energy sector by 2030, according to the unconditional NDCs of Indonesia. 
+Renewable energies included in the target are: biofuels for transportation, hydro, geothermal, solar PV, wind and biomass for power generation, 
+solar thermal for residential. Other current policies include: 
+reduction of use of coal in various industrial processes, reduction of use of fossil fuels in transportation and the 35 GW plan for the power sector.
