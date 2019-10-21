@@ -353,11 +353,32 @@ app.layout = html.Div(
                     [
                         dbc.ModalHeader("Reference Energy System"),
                         dbc.ModalBody([
-                            html.P("Simplified graphical representation"),
-                            html.Img(
-                                src="/assets/Indonesia-RES.svg",
-                                id="singapore-res",
-                            )]
+                                html.P("Simplified graphical representation"),
+                                dcc.Tabs(
+                                    [
+                                        dcc.Tab(
+                                            html.Img(src="/assets/Commercial and Other.jpg", style={'width': '100%'}),
+                                            label="Commercial and Other"
+                                        ),
+                                        dcc.Tab(
+                                            html.Img(src="/assets/Industry.jpg", style={'width': '100%'}),
+                                            label="Industry"
+                                        ),
+                                        dcc.Tab(
+                                            html.Img(src="/assets/Power supply.jpg", style={'width': '100%'}),
+                                            label="Power supply"
+                                        ),
+                                        dcc.Tab(
+                                            html.Img(src="/assets/Residential.jpg", style={'width': '100%', 'padding-top': '20px'}),
+                                            label="Residential"
+                                        ),
+                                        dcc.Tab(
+                                            html.Img(src="/assets/Transport.jpg", style={'width': '100%', 'padding-top': '20px'}),
+                                            label="Transport"
+                                        ),
+                                    ]
+                                ),
+                            ],
                         ),
                         dbc.ModalFooter(
                             dbc.Button("Close", id="close-res", className="ml-auto")
@@ -1067,8 +1088,8 @@ def update_elec_type(scenario):
             {'label': 'Fuel', 'value': 'Fuel'},
             {'label': 'Select...', 'value': 'Select', 'disabled': True},
         ]
-        npv = '{} M$'.format(economic_parameters['npv'][scenario])
-        savings = '{} M$'.format(economic_parameters['savings'][scenario])
+        npv = '{}'.format(economic_parameters['npv'][scenario])
+        savings = '{}'.format(economic_parameters['savings'][scenario])
     return options, npv, savings
 
 @app.callback(
@@ -1272,7 +1293,6 @@ def update_tfec(scenario, year_slider, visualization, type, units, sector):
                 layout_tfec["barmode"] = 'stack'
 
     elif visualization == 'tfec_co2':
-        if scenario == 'All':
             data, layout_tfec, dff = get_general_graph(df_emissions, year_slider, emissions_variable, layout,
                                                     "Total CO2 Emissions (Mton)")
 
