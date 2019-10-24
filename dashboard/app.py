@@ -49,8 +49,8 @@ df_elec_access = pd.DataFrame(columns=['y', 't', 'f', elec_access_variable, 'Sce
 df_cooking = pd.DataFrame(columns=['y', 't', 'f', cooking_variable, 'Scenario'])
 efficiency_variable = 'ProductionByTechnologyAnnual'
 df_efficiency = pd.DataFrame(columns=['y', 't', 'f', efficiency_variable, 'Scenario'])
-re_capacity_variable = 'TotalCapacityAnnual'
-df_re_capacity = pd.DataFrame(columns=['y', 't', re_capacity_variable, 'Scenario'])
+capacity_variable = 'TotalCapacityAnnual'
+df_capacity = pd.DataFrame(columns=['y', 't', capacity_variable, 'Scenario'])
 investment_variable = 'CapitalInvestment'
 df_re_investment = pd.DataFrame(columns=['y', 't', investment_variable, 'Scenario'])
 df_investment = pd.DataFrame(columns=['y', 't', investment_variable, 'Scenario'])
@@ -145,14 +145,14 @@ for scenario in scenarios:
     df_efficiency = df_efficiency.append(df_efficency_temp, ignore_index=True, sort=False)
 
     ##RE capacity##
-    df_re_capacity_temp = pd.read_csv(os.path.join(folder, scenario, re_capacity_variable + '.csv'))
-    df_re_capacity_temp.drop(columns=['r'], inplace=True)
-    df_re_capacity_temp = df_re_capacity_temp.loc[df_re_capacity_temp[re_capacity_variable] > 0]
-    df_re_capacity_temp = df_re_capacity_temp.loc[df_re_capacity_temp['t'].isin(input_re_capacity['OSEMOSYS'])]
-    df_re_capacity_temp['Scenario'] = scenario
-    df_re_capacity_temp = df_re_capacity_temp.reset_index(drop=True)
-    df_re_capacity_temp['Type'] = df_re_capacity_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['Type'].T.to_dict())
-    df_re_capacity = df_re_capacity.append(df_re_capacity_temp, ignore_index=True, sort=False)
+    df_capacity_temp = pd.read_csv(os.path.join(folder, scenario, capacity_variable + '.csv'))
+    df_capacity_temp.drop(columns=['r'], inplace=True)
+    df_capacity_temp = df_capacity_temp.loc[df_capacity_temp[capacity_variable] > 0]
+    df_capacity_temp = df_capacity_temp.loc[df_capacity_temp['t'].isin(input_production['OSEMOSYS'])]
+    df_capacity_temp['Scenario'] = scenario
+    df_capacity_temp = df_capacity_temp.reset_index(drop=True)
+    df_capacity_temp['Source'] = df_capacity_temp['t'].map(input_production.set_index('OSEMOSYS')['Source'].T.to_dict())
+    df_capacity = df_capacity.append(df_capacity_temp, ignore_index=True, sort=False)
 
     ##Investment##
     df_investment_temp = pd.read_csv(os.path.join(folder, scenario, investment_variable + '.csv'))
@@ -171,7 +171,7 @@ for scenario in scenarios:
     df_re_investment_temp = df_re_investment_temp.loc[df_re_investment_temp['t'].isin(input_re_capacity['OSEMOSYS'])]
     df_re_investment_temp['Scenario'] = scenario
     df_re_investment_temp = df_re_investment_temp.reset_index(drop=True)
-    df_re_investment_temp['Type'] = df_re_investment_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['Type'].T.to_dict())
+    df_re_investment_temp['Source'] = df_re_investment_temp['t'].map(input_re_capacity.set_index('OSEMOSYS')['Source'].T.to_dict())
     df_re_investment = df_re_investment.append(df_re_investment_temp, ignore_index=True, sort=False)
 
     ##Generation cost##
@@ -245,6 +245,28 @@ def get_general_graph(df, year_slider, variable, layout, title, units = None):
 
     layout["title"] = title
 
+    return data, layout, dff
+
+def capacity_plot(df, scenario, year_slider, type, variable, input_filter, layout, title):
+    dff = df.loc[
+        (df['Scenario'] == scenario) & (
+                    (df['y'] >= year_slider[0]) & (df['y'] <= year_slider[1]))]
+
+    data = [
+        dict(
+            type="bar",
+            x=dff.loc[dff[type] == tech].groupby('y').sum().index,
+            y=dff.loc[dff[type] == tech].groupby('y').sum()[variable],
+            name=tech,
+            hovertemplate=hover_template,
+            marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
+        )
+
+        for tech in input_filter[type].unique()
+    ]
+
+    layout["title"] = title
+    layout["barmode"] = 'stack'
     return data, layout, dff
 
 app = dash.Dash(__name__)
@@ -714,6 +736,7 @@ app.layout = html.Div(
                                     options=[
                                         {'label': 'Electricity demand', 'value': 'el_demand'},
                                         {'label': 'Electricity supply', 'value': 'el_prod'},
+                                        {'label': 'Cumulative installed capacity', 'value': 'el_capacity'},
                                         {'label': 'CO2 emissions', 'value': 'el_co2'},
                                         {'label': 'Annual investment required', 'value': 'el_inv'},
                                         {'label': 'Annual discounted cost', 'value': 'el_cost'},
@@ -924,7 +947,7 @@ app.layout = html.Div(
                                                 dcc.Dropdown(
                                                     id='re_drop',
                                                     options=[
-                                                        {'label': 'RE accumulated capacity', 'value': 're_capacity'},
+                                                        {'label': 'RE cumulative capacity', 'value': 're_capacity'},
                                                         {'label': 'RE share in TFEC', 'value': 're_tfec'},
                                                         {'label': 'RE share in energy sector', 'value': 're_energy_sector'},
                                                         {'label': 'Annual RE investment', 'value': 're_investment'},
@@ -1051,18 +1074,16 @@ def update_elec_value(value):
     return state, scenario, 'Select'
 
 @app.callback(
-    [
-        Output('tfec_scenario', 'options'),
-    ],
+    Output('tfec_scenario', 'options'),
     [
         Input('tfec_visualization_drop', 'value'),
     ],
 )
 def update_elec_value(value):
     if value == 'tfec_re':
-        options = [{'label': i, 'value': i} for i in scenarios],
+        options = [{'label': i, 'value': i} for i in scenarios]
     else:
-        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in scenarios],
+        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in scenarios]
     return options
 
 @app.callback(
@@ -1147,11 +1168,28 @@ def set_state(value, scenario, year_slider):
     ],
 )
 def update_elec_value(value):
+    scenario = 'All'
     if value == 'el_cost':
         state = True
     else:
         state = False
-    return 'All', state, 'Select'
+        if value == 'el_capacity':
+            scenario = 'BAU'
+
+    return scenario, state, 'Select'
+
+@app.callback(
+    Output('electricity_scenario', 'options'),
+    [
+        Input('electricity_visualization_drop', 'value'),
+    ],
+)
+def update_elec_value(value):
+    if value == 'el_capacity':
+        options = [{'label': i, 'value': i} for i in scenarios]
+    else:
+        options = [{'label': 'All', 'value': 'All'}] + [{'label': i, 'value': i} for i in scenarios]
+    return options
 
 @app.callback(
     Output('electricity_type_drop', 'options'),
@@ -1184,7 +1222,7 @@ def update_elec_type(visualization, scenario):
                 {'label': 'Type', 'value': 'Type'},
                 {'label': 'Select...', 'value': 'Select', 'disabled': True},
             ]
-        elif (visualization == 'el_inv') or (visualization == 'el_cost'):
+        elif (visualization == 'el_inv') or (visualization == 'el_cost') or (visualization == 'el_capacity'):
             options = [
                 {'label': 'Select...', 'value': 'Select', 'disabled': True},
             ]
@@ -1198,7 +1236,8 @@ def update_elec_type(visualization, scenario):
     ],
 )
 def set_state(scenario, visualization):
-    if (scenario == 'All') or (visualization == 'el_inv') or (visualization == 'el_cost'):
+    if (scenario == 'All') or (visualization == 'el_inv') or (visualization == 'el_cost') or \
+       (visualization == 'el_capacity'):
         state = True
     else:
         state = False
@@ -1323,6 +1362,7 @@ def update_tfec(scenario, year_slider, visualization, type, units, sector):
 def update_supply(scenario, year_slider, visualization, type, units, sector):
     layout_supply = copy.deepcopy(layout)
     data = ''
+    dff = pd.DataFrame()
     if visualization == 'el_demand':
         if scenario == 'All':
             data, layout_supply, dff = get_general_graph(df_elec_demand, year_slider, elec_demand_variable, layout,
@@ -1387,6 +1427,10 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
 
             layout_supply["title"] = "Electricity supply ({})".format(units)
             layout_supply["barmode"] = 'stack'
+
+    elif visualization == 'el_capacity':
+        data, layout_supply, dff = capacity_plot(df_capacity, scenario, year_slider, 'Source', capacity_variable,
+                                             input_production, layout_supply, "Cumulative installed capacity (GW)")
 
     elif visualization == 'el_co2':
         dff = df_emissions.loc[df_emissions['t'].isin(input_production['OSEMOSYS'])]
@@ -1590,24 +1634,8 @@ def re_graph(year_slider, visualization):
     layout_re= copy.deepcopy(layout)
 
     if visualization == 're_capacity':
-        dff = df_re_capacity.loc[
-            (df_re_capacity['Scenario'] == 'SDG7') & ((df_re_capacity['y'] >= year_slider[0]) & (df_re_capacity['y'] <= year_slider[1]))]
-
-        data = [
-            dict(
-                type="bar",
-                x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
-                y=dff.loc[dff['Type'] == tech].groupby('y').sum()[re_capacity_variable],
-                name=tech,
-                hovertemplate=hover_template,
-                marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
-            )
-
-            for tech in input_re_capacity['Type'].unique()
-        ]
-
-        layout_re["title"] = "Optimal capacity to achieve RE target (GW)"
-        layout_re["barmode"] = 'stack'
+        data, layout_re, dff = capacity_plot(df_capacity, 'SDG7', year_slider, 'Source', capacity_variable,
+                                             input_re_capacity, layout_re, "Optimal capacity to achieve RE target (GW)")
 
     elif visualization == 're_tfec':
         data, layout_re, dff = tfec_re_share('SDG7', year_slider, layout_re)
@@ -1641,14 +1669,14 @@ def re_graph(year_slider, visualization):
         data = [
             dict(
                 type="bar",
-                x=dff.loc[dff['Type'] == tech].groupby('y').sum().index,
-                y=dff.loc[dff['Type'] == tech].groupby('y').sum()[investment_variable],
+                x=dff.loc[dff['Source'] == tech].groupby('y').sum().index,
+                y=dff.loc[dff['Source'] == tech].groupby('y').sum()[investment_variable],
                 name=tech,
                 hovertemplate=hover_template,
                 marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
             )
 
-            for tech in input_re_capacity['Type'].unique()
+            for tech in input_re_capacity['Source'].unique()
         ]
 
         layout_re["title"] = "Capital Investment to achieve RE target (M$)"
