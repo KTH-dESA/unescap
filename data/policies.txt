@@ -1,4 +1,24 @@
-BAU
 
-1) 35 GW Plan
-- 
+POWER SECTOR:
+Base year (2017): 60.7 GW installed - generation 254.5 TWh, of which 57% coal, 25% gas, 6% oil, 12% renewables (7% hydro + 5% geothermal)
+Gas generation expected to increase by 80% by 2027, but share will decrease to 20%
+Oil generation planned to go to almost 0 by 2023
+
+By 2027: total + 9.5 GW in 2019 and + 56 GW by 2027, compared to 2017
+
+35 GW plan (initially by 2019, now delayed till 2024): + 20.3 GW coal, + 13.6 gas, + 2.3 hydro, + 0.1 geothermal, + 0.2 other (from 2017) / gas to be 30.8 in 2027 
+/ coal in RUPTL + 26.8 by 2029 (20.8 regular coal power plants, 6 CMM) / oil (and diesel) should in general decrease in power sector
+
+Government aims at 23% renewables by 2030 (roughly half geothermal, half hydro), but they say it will be challenging, given small quota assigned in 35 GW plan 
+Government expects complete access to electricity by 2024
+
+Gas infrastructure investments (pipelines and distribution) by 14.2 billion USD foreseen by government by 2035
+
+Gas reserves: 100.36 TSCF (trillion standard cubic feet) proven + 42.35 potential
+Coal: 92% of reserves calorific value 0f 6100 kcal/kg; resources + reserves = 154 billion tonnes; annual production to be restricted to 400 Mtonnes?
+rising price of coal? from 110USD/tonne up to maybe 127 (like in 2011) or even 140?
+
+
+
+
+
