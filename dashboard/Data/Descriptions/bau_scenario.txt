@@ -1,6 +1,1 @@
-This scenario follows historical demand trends based on simple projections by using GDP and population growth. 
-It does not consider emission limits and renewable targets. 
-GDP and population growth are calculated from historical data as 4.96 and 1.33% annual, respectively. 
-For each sector, the final energy demand is met by a fuel mix reflecting the current shares in TFEC. 
-The 35 GW plan for the power sector is implemented by 2024.The trend is extrapolated to 2050. 
-Energy efficiency improvements are not considered.
+This scenario follows historical demand trends based on simple projections by using GDP and population growth. It does not consider emission limits and renewable targets. GDP and population growth are calculated from historical data as 4.96 and 1.33% annual, respectively. For each sector, the final energy demand is met by a fuel mix reflecting the current shares in TFEC. The 35 GW plan for the power sector is implemented by 2024.The trend is extrapolated to 2050. Energy efficiency improvements are not considered.
