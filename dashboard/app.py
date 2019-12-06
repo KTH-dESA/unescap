@@ -6,6 +6,7 @@ from dash.dependencies import Input, Output, State
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 import pandas as pd
+import numpy as np
 import os.path
 import copy
 from six.moves.urllib.parse import quote
@@ -56,6 +57,7 @@ df_re_investment = pd.DataFrame(columns=['y', 't', investment_variable, 'Scenari
 df_investment = pd.DataFrame(columns=['y', 't', investment_variable, 'Scenario'])
 cost_variable = 'TotalDiscountedCost'
 df_cost = pd.DataFrame(columns=['y', cost_variable, 'Scenario'])
+df_el_emission = pd.DataFrame()
 
 for scenario in scenarios:
     ##tfec##
@@ -102,6 +104,21 @@ for scenario in scenarios:
     df_emissions_temp['Source'] = df_emissions_temp['t'].map(input_production.set_index('OSEMOSYS')['Source'].T.to_dict())
     df_emissions_temp['Type'] = df_emissions_temp['t'].map(input_production.set_index('OSEMOSYS')['Type'].T.to_dict())
     df_emissions = df_emissions.append(df_emissions_temp, ignore_index=True, sort=False)
+    
+    #Emissions electricity
+    df_el_emission_temp = pd.read_csv(os.path.join(folder, scenario, tfec_variable + '.csv'))
+    df_el_emission_temp.drop(columns=['r'], inplace=True)
+    df_el_emission_temp = df_el_emission_temp.loc[df_el_emission_temp[tfec_variable] > 0]
+    df_el_emission_temp = df_el_emission_temp[df_el_emission_temp['t'].isin(input_production['OSEMOSYS'])]
+    df_el_emission_temp['Scenario'] = scenario
+    df_el_emission_temp = df_el_emission_temp.reset_index(drop=True)
+    df_el_emission_temp['Type'] = df_el_emission_temp['t'].map(input_production.set_index('OSEMOSYS')['Type'].T.to_dict())
+    df_el_emission_temp['Source'] = df_el_emission_temp['t'].map(input_production.set_index('OSEMOSYS')['Source'].T.to_dict())
+    df_el_emission_temp['Use'] = df_el_emission_temp['t'].map(input_production.set_index('OSEMOSYS')['Use'].T.to_dict())
+    df_el_emission_temp['EmissionActivityRatio'] = df_el_emission_temp['t'].map(input_production.set_index('OSEMOSYS')['EmissionActivityRatio'].T.to_dict())
+    df_el_emission_temp.loc[df_el_emission_temp['EmissionActivityRatio']==0, 'EmissionActivityRatio'] = np.nan
+    df_el_emission_temp.dropna(inplace=True)
+    df_el_emission = df_el_emission.append(df_el_emission_temp, ignore_index=True, sort=False)
 
     ##Electricity demand##
     df_elec_demand_temp = pd.read_csv(os.path.join(folder, scenario, elec_demand_variable + '.csv'))
@@ -379,23 +396,23 @@ app.layout = html.Div(
                                 dcc.Tabs(
                                     [
                                         dcc.Tab(
-                                            html.Img(src="/assets/Commercial and Other.jpg", style={'width': '100%'}),
+                                            html.Img(src="/assets/Commercial and Other.png", style={'width': '100%'}),
                                             label="Commercial and Other"
                                         ),
                                         dcc.Tab(
-                                            html.Img(src="/assets/Industry.jpg", style={'width': '100%'}),
+                                            html.Img(src="/assets/Industry.png", style={'width': '100%'}),
                                             label="Industry"
                                         ),
                                         dcc.Tab(
-                                            html.Img(src="/assets/Power supply.jpg", style={'width': '100%'}),
+                                            html.Img(src="/assets/Power supply.png", style={'width': '100%'}),
                                             label="Power supply"
                                         ),
                                         dcc.Tab(
-                                            html.Img(src="/assets/Residential.jpg", style={'width': '100%', 'padding-top': '20px'}),
+                                            html.Img(src="/assets/Residential.png", style={'width': '100%', 'padding-top': '20px'}),
                                             label="Residential"
                                         ),
                                         dcc.Tab(
-                                            html.Img(src="/assets/Transport.jpg", style={'width': '100%', 'padding-top': '20px'}),
+                                            html.Img(src="/assets/Transport.png", style={'width': '100%', 'padding-top': '20px'}),
                                             label="Transport"
                                         ),
                                     ]
@@ -949,7 +966,7 @@ app.layout = html.Div(
                                                     options=[
                                                         {'label': 'RE cumulative capacity', 'value': 're_capacity'},
                                                         {'label': 'RE share in TFEC', 'value': 're_tfec'},
-                                                        {'label': 'RE share in energy sector', 'value': 're_energy_sector'},
+                                                        {'label': 'RE share in electricity generation', 'value': 're_energy_sector'},
                                                         {'label': 'Annual RE investment', 'value': 're_investment'},
                                                     ],
                                                     value='re_capacity',
@@ -1433,9 +1450,10 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                                              input_production, layout_supply, "Cumulative installed capacity (GW)")
 
     elif visualization == 'el_co2':
-        dff = df_emissions.loc[df_emissions['t'].isin(input_production['OSEMOSYS'])]
+        dff = df_el_emission.copy()
+        dff['Emissions'] = dff['UseByTechnologyAnnual'] * dff['EmissionActivityRatio']
         if scenario == 'All':
-            data, layout_supply, dff = get_general_graph(dff, year_slider, emissions_variable, layout,
+            data, layout_supply, dff = get_general_graph(dff, year_slider, 'Emissions', layout,
                                                   "Total CO2 Emissions (Mton)")
 
         elif (sector != 'Select') & (type != 'Select'):
@@ -1447,7 +1465,7 @@ def update_supply(scenario, year_slider, visualization, type, units, sector):
                 dict(
                     type="bar",
                     x=dff.loc[dff[type] == tech].groupby('y').sum().index,
-                    y=dff.loc[dff[type] == tech].groupby('y').sum()[emissions_variable],
+                    y=dff.loc[dff[type] == tech].groupby('y').sum()['Emissions'],
                     name=tech,
                     hovertemplate=hover_template,
                     marker={'line': {'width': '0.5', 'color': layout['plot_bgcolor']}},
