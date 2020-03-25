@@ -42,3 +42,5 @@ pip install -r requirements.txt
 After installing all required packages, the dashboard can be run locally by running `dashboard/python app.py` in your bash or anaconda prompt. A local host URL will be displayed as: http://127.0.0.1:8050/ copy it and paste it in your browser.
 
 To exit the app, type CTRL + C a couple of times in your bash.
+
+Moreover, an online version of the dashboard can be found at [https://indonesia-energy-model.herokuapp.com/](https://indonesia-energy-model.herokuapp.com/)
